@@ -41,11 +41,41 @@ export function getDashboardMetrics(summary: SteamUserSummary) {
 
 export function getPlaytimeBuckets(summary: SteamUserSummary) {
   const buckets = [
-    { label: "Epic", color: "#66C0F4", count: 0 },
-    { label: "Core", color: "#3b82f6", count: 0 },
-    { label: "Regular", color: "#0ea5e9", count: 0 },
-    { label: "Sampled", color: "#0284c7", count: 0 },
-    { label: "Unplayed", color: "#0f3b63", count: 0 },
+    {
+      label: "Addicted",
+      legend: "300+ hrs",
+      color: "#66C0F4",
+      count: 0,
+      games: [] as SteamUserSummary["ownedGames"],
+    },
+    {
+      label: "Enthusiast",
+      legend: "80-300 hrs",
+      color: "#3b82f6",
+      count: 0,
+      games: [] as SteamUserSummary["ownedGames"],
+    },
+    {
+      label: "Normal",
+      legend: "15-80 hrs",
+      color: "#0ea5e9",
+      count: 0,
+      games: [] as SteamUserSummary["ownedGames"],
+    },
+    {
+      label: "Short",
+      legend: "0-15 hrs",
+      color: "#0284c7",
+      count: 0,
+      games: [] as SteamUserSummary["ownedGames"],
+    },
+    {
+      label: "Unplayed",
+      legend: "0 hrs",
+      color: "#0f3b63",
+      count: 0,
+      games: [] as SteamUserSummary["ownedGames"],
+    },
   ];
 
   for (const game of summary.ownedGames) {
@@ -53,14 +83,19 @@ export function getPlaytimeBuckets(summary: SteamUserSummary) {
 
     if (hours === 0) {
       buckets[4].count += 1;
-    } else if (hours < 5) {
+      buckets[4].games.push(game);
+    } else if (hours < 15) {
       buckets[3].count += 1;
-    } else if (hours < 25) {
+      buckets[3].games.push(game);
+    } else if (hours < 80) {
       buckets[2].count += 1;
-    } else if (hours < 100) {
+      buckets[2].games.push(game);
+    } else if (hours < 300) {
       buckets[1].count += 1;
+      buckets[1].games.push(game);
     } else {
       buckets[0].count += 1;
+      buckets[0].games.push(game);
     }
   }
 
@@ -75,6 +110,7 @@ export function getPlaytimeBuckets(summary: SteamUserSummary) {
       ...bucket,
       percentage: (bucket.count / total) * 100,
       segment: `${bucket.color} ${start.toFixed(1)}deg ${currentAngle.toFixed(1)}deg`,
+      topGames: bucket.games.slice(0, 5),
     };
   });
 
