@@ -29,9 +29,17 @@ export type SteamOwnedGame = {
   playtime_forever: number;
 };
 
+export type SteamRecentGame = {
+  appid: number;
+  name: string;
+  playtime_2weeks: number;
+  playtime_forever: number;
+};
+
 export type SteamUserSummary = {
   player: SteamPlayer;
   ownedGames: SteamOwnedGame[];
+  recentGames: SteamRecentGame[];
 };
 
 type SteamPlayerSummariesResponse = {
@@ -52,6 +60,13 @@ type SteamResolveVanityUrlResponse = {
     success: number;
     steamid?: string;
     message?: string;
+  };
+};
+
+type SteamRecentlyPlayedGamesResponse = {
+  response?: {
+    total_count: number;
+    games?: SteamRecentGame[];
   };
 };
 
@@ -108,7 +123,7 @@ async function fetchSteamJson<T>(
 export async function getSteamUserSummary(
   steamUserId: string,
 ): Promise<SteamUserSummary> {
-  const [playerSummary, ownedGamesSummary] = await Promise.all([
+  const [playerSummary, ownedGamesSummary, recentGamesSummary] = await Promise.all([
     fetchSteamJson<SteamPlayerSummariesResponse>(
       "/ISteamUser/GetPlayerSummaries/v2/",
       {
@@ -120,6 +135,12 @@ export async function getSteamUserSummary(
       include_appinfo: "true",
       include_played_free_games: "true",
     }),
+    fetchSteamJson<SteamRecentlyPlayedGamesResponse>(
+      "/IPlayerService/GetRecentlyPlayedGames/v1/",
+      {
+        steamid: steamUserId,
+      },
+    ),
   ]);
 
   const player = playerSummary.response.players[0];
@@ -133,10 +154,14 @@ export async function getSteamUserSummary(
   const ownedGames = [...(ownedGamesSummary.response?.games ?? [])].sort(
     (left, right) => right.playtime_forever - left.playtime_forever,
   );
+  const recentGames = [...(recentGamesSummary.response?.games ?? [])].sort(
+    (left, right) => right.playtime_2weeks - left.playtime_2weeks,
+  );
 
   return {
     player,
     ownedGames,
+    recentGames,
   };
 }
 
@@ -210,4 +235,8 @@ export function formatUnixDate(unixSeconds?: number) {
     month: "short",
     day: "numeric",
   });
+}
+
+export function getSteamCapsuleImageUrl(appid: number) {
+  return `https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/${appid}/capsule_184x69.jpg`;
 }

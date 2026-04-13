@@ -15,6 +15,10 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "avatars.akamai.steamstatic.com",
       },
+      {
+        protocol: "https",
+        hostname: "shared.fastly.steamstatic.com",
+      },
     ],
   },
   turbopack: {
