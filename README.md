@@ -45,3 +45,19 @@ Steam API requests are cached using Next.js `fetch` data caching in `src/feature
 - Set `STEAM_API_CACHE_DEBUG=1` to print per-request cache debug logs (TTL, duration, and cache-related headers).
 
 > Note: cache lifetime also depends on your deployment's persistence model. Local development does not behave like production caching.
+
+### Viewing cache debug logs
+
+Run the app with `STEAM_API_CACHE_DEBUG=1` and watch the server terminal output:
+
+```bash
+STEAM_API_CACHE_DEBUG=1 npm run dev
+```
+
+Each Steam API request will emit a line similar to:
+
+```text
+[steam-cache] path=/IPlayerService/GetOwnedGames/v1/ ttl=300s duration=78ms age=n/a nextCache=n/a
+```
+
+In production, view the same logs from your runtime's server logs (for example, `vercel logs` on Vercel or container logs in your host platform).
