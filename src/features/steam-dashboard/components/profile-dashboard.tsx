@@ -187,35 +187,52 @@ function GameTagBreakdown({ tagBreakdown }: { tagBreakdown: SteamTagBreakdown | 
   return (
     <section className="rounded-2xl border border-[#1f2937] bg-[#121a2b]/85 p-5 shadow-xl shadow-black/30">
       <div className="mb-5 flex items-center justify-between">
-        <h3 className="text-[15px] font-semibold text-white">Tag Breakdown</h3>
+        <h3 className="text-[15px] font-semibold text-white">Top Tags</h3>
         <span className="rounded-full border border-[#1f2937] bg-[#0b1220] px-2 py-1 text-[11px] text-slate-400">
           {tagBreakdown?.totalTaggedGames ?? 0} played games
         </span>
       </div>
 
       {tagBreakdown && tagBreakdown.buckets.length > 0 ? (
-        <div className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr] xl:items-start">
-          <div className="flex items-center justify-center xl:sticky xl:top-5">
-            <div
-              className="relative h-56 w-56 rounded-full"
-              style={{ background: tagBreakdown.background }}
+        <div className="flex flex-wrap gap-2">
+          {tagBreakdown.buckets.map((bucket) => (
+            <button
+              key={bucket.label}
+              type="button"
+              className="rounded-full border border-[#1f2937] bg-[#0b1220]/75 px-3 py-1.5 text-left transition hover:border-[#2a3648] hover:bg-[#111a2c]"
             >
-              <div className="absolute inset-[30px] flex items-center justify-center rounded-full bg-[#121a2b] ring-1 ring-inset ring-[#1f2937]">
-                <div className="text-center">
-                  <p className="text-[10px] uppercase tracking-[0.24em] text-slate-500">
-                    Top Tag
-                  </p>
-                  <p className="mt-1 text-lg font-semibold leading-none text-white">
-                    {tagBreakdown.buckets[0].label}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
+              <span className="flex items-center gap-2">
+                <span
+                  className="h-2 w-2 rounded-full"
+                  style={{ backgroundColor: bucket.color }}
+                />
+                <span className="text-[12px] font-medium text-slate-200">
+                  {bucket.label}
+                </span>
+                <span className="text-[11px] text-slate-400">
+                  {formatPercent(bucket.percentage)}
+                </span>
+              </span>
+            </button>
+          ))}
+        </div>
+      ) : (
+        <p className="text-sm text-slate-400">
+          No tag data available yet. SteamSpy tags are fetched from played games
+          using the API’s <span className="font-medium text-slate-300">tags</span>{" "}
+          field (not genre).
+        </p>
+      )}
+
+      {tagBreakdown && tagBreakdown.buckets.length > 0 ? (
+        <div className="mt-4 space-y-2">
+          <p className="text-[11px] uppercase tracking-[0.16em] text-slate-500">
+            Source: SteamSpy tags field
+          </p>
           <div className="space-y-2">
             {tagBreakdown.buckets.map((bucket) => (
               <div
-                key={bucket.label}
+                key={`${bucket.label}-summary`}
                 className="rounded-xl border border-[#1f2937]/80 bg-[#0b1220]/55 px-3 py-2.5"
               >
                 <div className="flex items-start gap-3">
@@ -241,11 +258,7 @@ function GameTagBreakdown({ tagBreakdown }: { tagBreakdown: SteamTagBreakdown | 
             ))}
           </div>
         </div>
-      ) : (
-        <p className="text-sm text-slate-400">
-          No tag data available yet. SteamSpy tags are fetched from played games.
-        </p>
-      )}
+      ) : null}
     </section>
   );
 }

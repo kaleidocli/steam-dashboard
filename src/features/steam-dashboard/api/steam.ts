@@ -124,6 +124,8 @@ type SteamRecentlyPlayedGamesResponse = {
 };
 
 type SteamSpyAppDetailsResponse = {
+  // We intentionally use SteamSpy's `tags` field for this feature.
+  // Do not fallback to `genre` because users requested tag-based breakdowns.
   tags?: Record<string, number>;
 };
 
