@@ -95,35 +95,81 @@ function PlaytimeBreakdown({ summary }: ProfileDashboardProps) {
     <section className="rounded-2xl border border-[#1f2937] bg-[#121a2b]/85 p-5 shadow-xl shadow-black/30">
       <div className="mb-5 flex items-center justify-between">
         <div>
-          <h3 className="text-[15px] font-semibold text-white">Playtime DNA</h3>
-          <p className="mt-0.5 text-[12px] text-slate-500">
-            Library pacing breakdown
-          </p>
+          <h3 className="text-[15px] font-semibold text-white">
+            Playtime Breakdown
+          </h3>
         </div>
         <span className="rounded-full border border-[#1f2937] bg-[#0b1220] px-2 py-1 text-[11px] text-slate-400">
           {summary.ownedGames.length} games
         </span>
       </div>
-      <div className="grid items-center gap-6 sm:grid-cols-[1.1fr_0.9fr]">
-        <div className="flex items-center justify-center">
+      <div className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr] xl:items-start">
+        <div className="flex items-center justify-center xl:sticky xl:top-5">
           <div
             className="relative h-56 w-56 rounded-full"
             style={{ background: breakdown.background }}
           >
-            <div className="absolute inset-[30px] rounded-full bg-[#121a2b] ring-1 ring-inset ring-[#1f2937]" />
+            <div className="absolute inset-[30px] flex items-center justify-center rounded-full bg-[#121a2b] ring-1 ring-inset ring-[#1f2937]">
+              <div className="text-center">
+                <p className="text-[10px] uppercase tracking-[0.24em] text-slate-500">
+                  Total Games
+                </p>
+                <p className="mt-1 text-3xl font-semibold leading-none text-white">
+                  {summary.ownedGames.length}
+                </p>
+              </div>
+            </div>
           </div>
         </div>
-        <div className="space-y-3">
+        <div className="space-y-2">
           {breakdown.buckets.map((bucket) => (
-            <div key={bucket.label} className="flex items-center gap-3">
-              <span
-                className="h-2.5 w-2.5 rounded-full"
-                style={{ backgroundColor: bucket.color }}
-              />
-              <span className="flex-1 text-sm text-slate-300">{bucket.label}</span>
-              <span className="text-sm font-medium text-white">
-                {formatPercent(bucket.percentage)}
-              </span>
+            <div
+              key={bucket.label}
+              className="group relative rounded-xl border border-[#1f2937]/80 bg-[#0b1220]/55 px-3 py-2.5"
+            >
+              <div className="flex items-start gap-3">
+                <span
+                  className="mt-1 h-2 w-2 rounded-full"
+                  style={{ backgroundColor: bucket.color }}
+                />
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-baseline justify-between gap-3">
+                    <span className="text-[13px] font-medium text-slate-200">
+                      {bucket.label}
+                    </span>
+                    <span className="text-[13px] font-medium text-white">
+                      {formatPercent(bucket.percentage)}
+                    </span>
+                  </div>
+                  <div className="mt-0.5 flex items-center justify-between gap-3">
+                    <p className="text-[10px] uppercase tracking-[0.16em] text-slate-500">
+                      {bucket.legend} · {bucket.count} games
+                    </p>
+                    {bucket.label !== "Unplayed" && bucket.topGames.length > 0 ? (
+                      <span className="text-[13px] font-medium leading-none text-slate-500 transition group-hover:translate-x-0.5 group-hover:text-[#66c0f4]">
+                        &gt;
+                      </span>
+                    ) : null}
+                  </div>
+                  {bucket.label !== "Unplayed" && bucket.topGames.length > 0 ? (
+                    <div className="pointer-events-none absolute left-3 right-3 top-full z-10 mt-2 rounded-xl border border-[#2a3648] bg-[#0b1220]/95 p-3 opacity-0 shadow-xl shadow-black/40 transition duration-150 group-hover:translate-y-1 group-hover:opacity-100">
+                      <p className="text-[11px] uppercase tracking-[0.18em] text-slate-500">
+                        Top 5 in {bucket.label}
+                      </p>
+                      <ul className="mt-2 space-y-1.5 text-xs text-slate-300">
+                        {bucket.topGames.map((game) => (
+                          <li key={game.appid} className="flex items-start justify-between gap-3">
+                            <span className="min-w-0 flex-1 truncate">{game.name}</span>
+                            <span className="shrink-0 text-slate-400">
+                              {formatPlaytime(game.playtime_forever)}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ) : null}
+                </div>
+              </div>
             </div>
           ))}
         </div>
