@@ -131,14 +131,17 @@ export type SteamTagMetric = "titleCount" | "hoursPlayed";
 export type SteamTagAggregate = {
   label: string;
   titleCount: number;
+  playedTitleCount: number;
   totalMinutes: number;
 };
 
 export type SteamTagBreakdown = {
   tags: SteamTagAggregate[];
+  totalGames: number;
   totalPlayedGames: number;
   totalPlayedMinutes: number;
   totalTitleCount: number;
+  totalPlayedTitleCount: number;
   totalTaggedMinutes: number;
 };
 
@@ -312,7 +315,10 @@ export async function getSteamTagBreakdown(
   ownedGames: SteamOwnedGame[],
 ): Promise<SteamTagBreakdown> {
   const playedGames = ownedGames.filter((game) => game.playtime_forever > 0);
-  const tagTotals = new Map<string, { titleCount: number; totalMinutes: number }>();
+  const tagTotals = new Map<
+    string,
+    { titleCount: number; playedTitleCount: number; totalMinutes: number }
+  >();
   const totalPlayedMinutes = playedGames.reduce(
     (total, game) => total + game.playtime_forever,
     0,
@@ -320,13 +326,10 @@ export async function getSteamTagBreakdown(
 
   for (
     let index = 0;
-    index < playedGames.length;
+    index < ownedGames.length;
     index += STEAMSPY_CONCURRENT_REQUESTS
   ) {
-    const gamesBatch = playedGames.slice(
-      index,
-      index + STEAMSPY_CONCURRENT_REQUESTS,
-    );
+    const gamesBatch = ownedGames.slice(index, index + STEAMSPY_CONCURRENT_REQUESTS);
 
     const batchResults = await Promise.all(
       gamesBatch.map(async (game) => {
@@ -350,16 +353,22 @@ export async function getSteamTagBreakdown(
         continue;
       }
 
+      const isPlayed = game.playtime_forever > 0;
+
       for (const tag of tags) {
         const existing = tagTotals.get(tag.label);
         const weightedMinutes = game.playtime_forever * tag.weight;
 
         if (existing) {
           existing.titleCount += 1;
+          if (isPlayed) {
+            existing.playedTitleCount += 1;
+          }
           existing.totalMinutes += weightedMinutes;
         } else {
           tagTotals.set(tag.label, {
             titleCount: 1,
+            playedTitleCount: isPlayed ? 1 : 0,
             totalMinutes: weightedMinutes,
           });
         }
@@ -371,15 +380,21 @@ export async function getSteamTagBreakdown(
     .map(([label, value]) => ({
       label,
       titleCount: value.titleCount,
+      playedTitleCount: value.playedTitleCount,
       totalMinutes: value.totalMinutes,
     }))
     .sort((left, right) => left.label.localeCompare(right.label));
 
   return {
     tags,
+    totalGames: ownedGames.length,
     totalPlayedGames: playedGames.length,
     totalPlayedMinutes,
     totalTitleCount: tags.reduce((total, tag) => total + tag.titleCount, 0),
+    totalPlayedTitleCount: tags.reduce(
+      (total, tag) => total + tag.playedTitleCount,
+      0,
+    ),
     totalTaggedMinutes: tags.reduce((total, tag) => total + tag.totalMinutes, 0),
   };
 }

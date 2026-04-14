@@ -5,7 +5,10 @@ import type {
   SteamTagBreakdown,
   SteamTagMetric,
 } from "@/features/steam-dashboard/api/steam";
-import { formatHours, formatPercent } from "@/features/steam-dashboard/utils/dashboard";
+import {
+  formatHours,
+  formatPercent,
+} from "@/features/steam-dashboard/utils/dashboard";
 import { buildSteamTagDisplayBreakdown } from "@/features/steam-dashboard/utils/tag-breakdown";
 
 type GameTagBreakdownProps = {
@@ -22,6 +25,7 @@ const TAG_METRIC_OPTIONS: Array<{
 
 export function GameTagBreakdown({ tagBreakdown }: GameTagBreakdownProps) {
   const [metric, setMetric] = useState<SteamTagMetric>("titleCount");
+  const [includeUnplayed, setIncludeUnplayed] = useState(false);
 
   if (!tagBreakdown || tagBreakdown.tags.length === 0) {
     return (
@@ -47,19 +51,31 @@ export function GameTagBreakdown({ tagBreakdown }: GameTagBreakdownProps) {
         </div>
 
         <p className="text-sm text-slate-400">
-          No tag data available yet. SteamSpy tags are fetched from played games
-          using the API&apos;s <span className="font-medium text-slate-300">tags</span>{" "}
+          No tag data available yet. SteamSpy tags are fetched from the
+          API&apos;s <span className="font-medium text-slate-300">tags</span>{" "}
           field, not genre.
         </p>
       </section>
     );
   }
 
-  const displayBreakdown = buildSteamTagDisplayBreakdown(tagBreakdown, metric);
+  const displayBreakdown = buildSteamTagDisplayBreakdown(
+    tagBreakdown,
+    metric,
+    includeUnplayed,
+  );
   const metricBadge =
     metric === "hoursPlayed"
       ? `${formatHours(displayBreakdown.totalMetricValue)} tagged hrs`
-      : `${Math.round(displayBreakdown.totalMetricValue).toLocaleString()} tagged games`;
+      : `${Math.round(displayBreakdown.totalMetricValue).toLocaleString()} tagged ${
+          includeUnplayed ? "titles" : "played games"
+        }`;
+  const centerLabel =
+    metric === "hoursPlayed"
+      ? "Tagged Hours"
+      : includeUnplayed
+        ? "Tagged Titles"
+        : "Tagged Games";
 
   return (
     <section className="rounded-2xl border border-[#1f2937] bg-[#121a2b]/85 p-5 shadow-xl shadow-black/30">
@@ -75,6 +91,18 @@ export function GameTagBreakdown({ tagBreakdown }: GameTagBreakdownProps) {
           <span className="rounded-full border border-[#1f2937] bg-[#0b1220] px-2 py-1 text-[11px] text-slate-400">
             {metricBadge}
           </span>
+          <button
+            type="button"
+            aria-pressed={includeUnplayed}
+            onClick={() => setIncludeUnplayed((current) => !current)}
+            className={`rounded-full border px-3 py-1.5 text-[11px] font-medium transition ${
+              includeUnplayed
+                ? "border-[#66c0f4]/40 bg-[#66c0f4]/10 text-[#8bd3ff]"
+                : "border-[#1f2937] bg-[#0b1220] text-slate-400 hover:text-white"
+            }`}
+          >
+            Include Unplayed: {includeUnplayed ? "On" : "Off"}
+          </button>
           <div className="inline-flex rounded-xl border border-[#1f2937] bg-[#0b1220]/80 p-1">
             {TAG_METRIC_OPTIONS.map((option) => (
               <button
@@ -103,7 +131,7 @@ export function GameTagBreakdown({ tagBreakdown }: GameTagBreakdownProps) {
             <div className="absolute inset-[24px] flex items-center justify-center rounded-full bg-[#121a2b] ring-1 ring-inset ring-[#1f2937]">
               <div className="text-center">
                 <p className="text-[10px] uppercase tracking-[0.22em] text-slate-500">
-                  {metric === "hoursPlayed" ? "Tagged Hours" : "Tagged Games"}
+                  {centerLabel}
                 </p>
                 <p className="mt-1 text-2xl font-semibold leading-none text-white">
                   {metric === "hoursPlayed"
@@ -143,7 +171,7 @@ export function GameTagBreakdown({ tagBreakdown }: GameTagBreakdownProps) {
           <div className="space-y-2">
             {displayBreakdown.buckets.map((bucket) => (
               <div
-                key={`${metric}-${bucket.label}`}
+                key={`${metric}-${includeUnplayed ? "all" : "played"}-${bucket.label}`}
                 className="rounded-xl border border-[#1f2937]/80 bg-[#0b1220]/55 px-3 py-2"
               >
                 <div className="flex items-center gap-3">

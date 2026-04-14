@@ -21,6 +21,7 @@ const TAG_COLORS = [
 export type SteamTagDisplayBucket = {
   label: string;
   titleCount: number;
+  playedTitleCount: number;
   totalMinutes: number;
   value: number;
   percentage: number;
@@ -32,27 +33,47 @@ export type SteamTagDisplayBreakdown = {
   background: string;
   buckets: SteamTagDisplayBucket[];
   totalMetricValue: number;
+  totalGames: number;
   totalPlayedGames: number;
   totalPlayedMinutes: number;
 };
 
-function getMetricValue(tag: SteamTagAggregate, metric: SteamTagMetric) {
-  return metric === "hoursPlayed" ? tag.totalMinutes : tag.titleCount;
+function getDisplayTitleCount(
+  tag: SteamTagAggregate,
+  includeUnplayed: boolean,
+) {
+  return includeUnplayed ? tag.titleCount : tag.playedTitleCount;
+}
+
+function getMetricValue(
+  tag: SteamTagAggregate,
+  metric: SteamTagMetric,
+  includeUnplayed: boolean,
+) {
+  return metric === "hoursPlayed"
+    ? tag.totalMinutes
+    : getDisplayTitleCount(tag, includeUnplayed);
 }
 
 function sortTags(
   tags: SteamTagAggregate[],
   metric: SteamTagMetric,
+  includeUnplayed: boolean,
 ): SteamTagAggregate[] {
   return [...tags].sort((left, right) => {
-    const metricDelta = getMetricValue(right, metric) - getMetricValue(left, metric);
+    const metricDelta =
+      getMetricValue(right, metric, includeUnplayed) -
+      getMetricValue(left, metric, includeUnplayed);
 
     if (metricDelta !== 0) {
       return metricDelta;
     }
 
-    if (right.titleCount !== left.titleCount) {
-      return right.titleCount - left.titleCount;
+    const rightTitleCount = getDisplayTitleCount(right, includeUnplayed);
+    const leftTitleCount = getDisplayTitleCount(left, includeUnplayed);
+
+    if (rightTitleCount !== leftTitleCount) {
+      return rightTitleCount - leftTitleCount;
     }
 
     if (right.totalMinutes !== left.totalMinutes) {
@@ -66,18 +87,24 @@ function sortTags(
 export function buildSteamTagDisplayBreakdown(
   tagBreakdown: SteamTagBreakdown,
   metric: SteamTagMetric,
+  includeUnplayed: boolean,
 ): SteamTagDisplayBreakdown {
-  const sortedTags = sortTags(tagBreakdown.tags, metric);
+  const filteredTags = tagBreakdown.tags.filter(
+    (tag) => getDisplayTitleCount(tag, includeUnplayed) > 0,
+  );
+  const sortedTags = sortTags(filteredTags, metric, includeUnplayed);
   const totalMetricValue =
     metric === "hoursPlayed"
       ? tagBreakdown.totalTaggedMinutes
-      : tagBreakdown.totalTitleCount;
+      : includeUnplayed
+        ? tagBreakdown.totalTitleCount
+        : tagBreakdown.totalPlayedTitleCount;
   const safeTotalMetricValue = totalMetricValue || 1;
 
   let visibleTagCount = Math.min(MIN_VISIBLE_TAGS, sortedTags.length);
   let remainingTags = sortedTags.slice(visibleTagCount);
   let otherMetricValue = remainingTags.reduce(
-    (total, tag) => total + getMetricValue(tag, metric),
+    (total, tag) => total + getMetricValue(tag, metric, includeUnplayed),
     0,
   );
 
@@ -89,7 +116,7 @@ export function buildSteamTagDisplayBreakdown(
     visibleTagCount += 1;
     remainingTags = sortedTags.slice(visibleTagCount);
     otherMetricValue = remainingTags.reduce(
-      (total, tag) => total + getMetricValue(tag, metric),
+      (total, tag) => total + getMetricValue(tag, metric, includeUnplayed),
       0,
     );
   }
@@ -100,16 +127,23 @@ export function buildSteamTagDisplayBreakdown(
     visibleTags.push({
       label: "Other",
       titleCount: remainingTags.reduce((total, tag) => total + tag.titleCount, 0),
+      playedTitleCount: remainingTags.reduce(
+        (total, tag) => total + tag.playedTitleCount,
+        0,
+      ),
       totalMinutes: remainingTags.reduce((total, tag) => total + tag.totalMinutes, 0),
     });
   }
 
   const chartTags = visibleTags.filter((tag) => tag.label !== "Other");
   const chartTotalMetricValue =
-    chartTags.reduce((total, tag) => total + getMetricValue(tag, metric), 0) || 1;
+    chartTags.reduce(
+      (total, tag) => total + getMetricValue(tag, metric, includeUnplayed),
+      0,
+    ) || 1;
   let currentAngle = 0;
   const buckets = visibleTags.map((tag, index) => {
-    const value = getMetricValue(tag, metric);
+    const value = getMetricValue(tag, metric, includeUnplayed);
     const percentage =
       tag.label === "Other" ? 0 : (value / chartTotalMetricValue) * 100;
     const start = currentAngle;
@@ -120,7 +154,8 @@ export function buildSteamTagDisplayBreakdown(
 
     return {
       label: tag.label,
-      titleCount: tag.titleCount,
+      titleCount: getDisplayTitleCount(tag, includeUnplayed),
+      playedTitleCount: tag.playedTitleCount,
       totalMinutes: tag.totalMinutes,
       value,
       percentage,
@@ -139,6 +174,7 @@ export function buildSteamTagDisplayBreakdown(
         : "conic-gradient(#1f2937 0deg 360deg)",
     buckets,
     totalMetricValue,
+    totalGames: tagBreakdown.totalGames,
     totalPlayedGames: tagBreakdown.totalPlayedGames,
     totalPlayedMinutes: tagBreakdown.totalPlayedMinutes,
   };
