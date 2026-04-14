@@ -8,6 +8,7 @@ import {
   type SteamUserSummary,
 } from "@/features/steam-dashboard/api/steam";
 import { GameTagBreakdown } from "@/features/steam-dashboard/components/game-tag-breakdown";
+import { TopHoursChart } from "@/features/steam-dashboard/components/top-hours-chart";
 import {
   formatHours,
   formatPercent,
@@ -48,51 +49,6 @@ function StatPill({ label, value, hint, accent }: StatCardProps) {
         {value}
       </p>
     </div>
-  );
-}
-
-function TopHoursChart({ summary }: SummaryProps) {
-  const topGames = summary.ownedGames.slice(0, 5);
-
-  return (
-    <section className="rounded-2xl border border-[#1f2937] bg-[#121a2b]/85 p-5 shadow-xl shadow-black/30">
-      <div className="mb-5 flex items-center justify-between">
-        <div>
-          <h3 className="text-[15px] font-semibold text-white">Top 5 by Hours</h3>
-          <p className="mt-0.5 text-[12px] text-slate-500">Lifetime playtime</p>
-        </div>
-      </div>
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 xl:grid-cols-5">
-        {topGames.map((game) => (
-          <article
-            key={game.appid}
-            className="group overflow-hidden rounded-xl border border-[#1f2937]/80 bg-[#0b1220]/55 transition hover:border-[#2a3648]"
-          >
-            <div className="relative aspect-[3/4] overflow-hidden bg-[#0b1220]">
-              <Image
-                src={getSteamCapsuleImageUrl(game.appid).replace(
-                  "capsule_184x69.jpg",
-                  "library_600x900_2x.jpg",
-                )}
-                alt={`${game.name} cover art`}
-                fill
-                sizes="(max-width: 640px) 45vw, (max-width: 1280px) 28vw, 16vw"
-                className="object-cover transition duration-300 group-hover:scale-[1.03]"
-              />
-              <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[#08111f] via-[#08111f]/65 to-transparent" />
-            </div>
-            <div className="space-y-1 px-3 py-3">
-              <p className="text-sm font-medium leading-5 text-white">
-                {game.name}
-              </p>
-              <p className="font-medium text-[#66c0f4]">
-                {formatPlaytime(game.playtime_forever)}
-              </p>
-            </div>
-          </article>
-        ))}
-      </div>
-    </section>
   );
 }
 
@@ -412,7 +368,7 @@ export function ProfileDashboard({ summary, tagBreakdown }: ProfileDashboardProp
       </section>
 
       <section className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
-        <TopHoursChart summary={summary} />
+        <TopHoursChart summary={summary} tagBreakdown={tagBreakdown} />
         <PlaytimeBreakdown summary={summary} />
       </section>
 

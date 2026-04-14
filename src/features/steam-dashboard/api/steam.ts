@@ -137,6 +137,8 @@ export type SteamTagAggregate = {
 
 export type SteamTagBreakdown = {
   tags: SteamTagAggregate[];
+  availableTags: string[];
+  gamesByTag: Record<string, number[]>;
   totalGames: number;
   totalPlayedGames: number;
   totalPlayedMinutes: number;
@@ -319,6 +321,7 @@ export async function getSteamTagBreakdown(
     string,
     { titleCount: number; playedTitleCount: number; totalMinutes: number }
   >();
+  const gamesByTag = new Map<string, Set<number>>();
   const totalPlayedMinutes = playedGames.reduce(
     (total, game) => total + game.playtime_forever,
     0,
@@ -358,6 +361,8 @@ export async function getSteamTagBreakdown(
       for (const tag of tags) {
         const existing = tagTotals.get(tag.label);
         const weightedMinutes = game.playtime_forever * tag.weight;
+        const normalizedLabel = tag.label.toLocaleLowerCase();
+        const taggedGames = gamesByTag.get(normalizedLabel);
 
         if (existing) {
           existing.titleCount += 1;
@@ -371,6 +376,12 @@ export async function getSteamTagBreakdown(
             playedTitleCount: isPlayed ? 1 : 0,
             totalMinutes: weightedMinutes,
           });
+        }
+
+        if (taggedGames) {
+          taggedGames.add(game.appid);
+        } else {
+          gamesByTag.set(normalizedLabel, new Set([game.appid]));
         }
       }
     }
@@ -387,6 +398,10 @@ export async function getSteamTagBreakdown(
 
   return {
     tags,
+    availableTags: tags.map((tag) => tag.label),
+    gamesByTag: Object.fromEntries(
+      [...gamesByTag.entries()].map(([label, appIds]) => [label, [...appIds]]),
+    ),
     totalGames: ownedGames.length,
     totalPlayedGames: playedGames.length,
     totalPlayedMinutes,
