@@ -31,26 +31,23 @@ type StatCardProps = {
   accent: string;
 };
 
-function StatCard({ label, value, hint, accent }: StatCardProps) {
+function StatPill({ label, value, hint, accent }: StatCardProps) {
   return (
-    <article className="group relative overflow-hidden rounded-2xl border border-[#1f2937] bg-[#121a2b]/85 p-5 shadow-xl shadow-black/30 transition hover:-translate-y-0.5 hover:border-[#2a3648]">
-      <div className="absolute inset-0 bg-gradient-to-b from-[#66c0f4]/[0.07] to-transparent opacity-0 transition group-hover:opacity-100" />
-      <div className="relative">
-        <div className="flex items-start justify-between">
-          <div className="rounded-xl bg-[#66c0f4]/10 px-3 py-2 text-xs font-semibold uppercase tracking-[0.25em] text-[#66c0f4] ring-1 ring-inset ring-[#66c0f4]/20">
-            {label}
-          </div>
-          <span
-            className={`rounded-full px-2 py-1 text-[11px] font-medium ring-1 ring-inset ${accent}`}
-          >
-            {hint}
-          </span>
-        </div>
-        <p className="mt-5 text-[34px] font-semibold leading-none tracking-tight text-white">
-          {value}
+    <div className="min-w-[136px] rounded-xl border border-[#1f2937]/80 bg-[#0b1220]/60 px-3 py-2.5">
+      <div className="flex items-start justify-between gap-3">
+        <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#66c0f4]">
+          {label}
         </p>
+        <span
+          className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-medium ring-1 ring-inset ${accent}`}
+        >
+          {hint}
+        </span>
       </div>
-    </article>
+      <p className="mt-2 text-[24px] font-semibold leading-none tracking-tight text-white">
+        {value}
+      </p>
+    </div>
   );
 }
 
@@ -318,71 +315,96 @@ export function ProfileDashboard({ summary, tagBreakdown }: ProfileDashboardProp
   return (
     <div className="space-y-6">
       <section className="rounded-2xl border border-[#1f2937] bg-[#121a2b]/85 p-5 shadow-xl shadow-black/30">
-        <div className="flex flex-col gap-5 lg:flex-row lg:items-center">
-          <div className="flex items-center gap-4">
-            <Image
-              src={summary.player.avatarfull}
-              alt={`${summary.player.personaname} avatar`}
-              width={80}
-              height={80}
-              className="h-20 w-20 rounded-2xl ring-1 ring-[#1f2937]"
-            />
-            <div>
-              <p className="text-sm uppercase tracking-[0.3em] text-[#66c0f4]">
-                Connected profile
-              </p>
-              <h2 className="mt-1 text-3xl font-semibold tracking-tight text-white">
+        <div className="flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
+          <div className="flex min-w-0 items-center gap-4">
+            <div className="shrink-0">
+              <Image
+                src={summary.player.avatarfull}
+                alt={`${summary.player.personaname} avatar`}
+                width={80}
+                height={80}
+                className="h-20 w-20 rounded-2xl ring-1 ring-[#1f2937]"
+              />
+            </div>
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <h2 className="text-3xl font-semibold tracking-tight text-white">
                 {summary.player.personaname}
               </h2>
-              <p className="mt-1 text-sm text-slate-400">
-                {getPersonaStatus(summary.player.personastate)} • Joined{" "}
-                {formatUnixDate(summary.player.timecreated)} •{" "}
-                {summary.player.loccountrycode ?? "Unknown region"}
-              </p>
+            </div>
+            <p className="mt-1 text-sm text-slate-400">
+              {getPersonaStatus(summary.player.personastate)} / Joined{" "}
+              {formatUnixDate(summary.player.timecreated)} /{" "}
+              {summary.player.loccountrycode ?? "Unknown region"}
+            </p>
+            <div className="mt-2 flex flex-wrap items-center gap-2">
+              <span className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-xs text-slate-300">
+                Steam ID:{" "}
+                <span className="font-mono text-[11px]">
+                  {summary.player.steamid}
+                </span>
+              </span>
+              <a
+                href={summary.player.profileurl}
+                target="_blank"
+                rel="noreferrer"
+                aria-label="Open Steam profile"
+                className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-[#66c0f4]/25 bg-[#66c0f4]/10 text-[#66c0f4] transition hover:bg-[#66c0f4]/20 hover:text-[#8bd3ff]"
+              >
+                <svg
+                  aria-hidden="true"
+                  viewBox="0 0 16 16"
+                  className="h-3 w-3"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M6 4H12V10"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  <path
+                    d="M11.5 4.5L4 12"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </a>
             </div>
           </div>
-          <div className="flex flex-1 flex-wrap gap-3 lg:justify-end">
-            <span className="rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 text-sm text-slate-300">
-              Steam ID:{" "}
-              <span className="font-mono text-xs">{summary.player.steamid}</span>
-            </span>
-            <a
-              href={summary.player.profileurl}
-              target="_blank"
-              rel="noreferrer"
-              className="rounded-full bg-[#66c0f4] px-4 py-2 text-sm font-semibold text-[#08111f] transition hover:bg-[#8bd3ff]"
-            >
-              Open Steam profile
-            </a>
+          </div>
+
+          <div className="flex flex-wrap gap-2 xl:justify-end">
+            <StatPill
+              label="Total Games"
+              value={metrics.totalGames.toLocaleString()}
+              hint={`+${summary.recentGames.length} active`}
+              accent="bg-emerald-500/10 text-emerald-400 ring-emerald-500/20"
+            />
+            <StatPill
+              label="Hours Played"
+              value={formatHours(metrics.totalMinutes)}
+              hint={`+${formatHours(metrics.recentlyPlayedMinutes)} hrs`}
+              accent="bg-emerald-500/10 text-emerald-400 ring-emerald-500/20"
+            />
+            <StatPill
+              label="Avg Hrs/Game"
+              value={metrics.averageHoursPerPlayedGame.toFixed(1)}
+              hint={`${metrics.playedGames} played`}
+              accent="bg-sky-500/10 text-sky-300 ring-sky-500/20"
+            />
+            <StatPill
+              label="Completion"
+              value={formatPercent(metrics.completionRate)}
+              hint={`${metrics.unplayedGames} backlog`}
+              accent="bg-amber-500/10 text-amber-300 ring-amber-500/20"
+            />
           </div>
         </div>
-      </section>
-
-      <section className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4">
-        <StatCard
-          label="Total Games"
-          value={metrics.totalGames.toLocaleString()}
-          hint={`+${summary.recentGames.length} active`}
-          accent="bg-emerald-500/10 text-emerald-400 ring-emerald-500/20"
-        />
-        <StatCard
-          label="Hours Played"
-          value={formatHours(metrics.totalMinutes)}
-          hint={`+${formatHours(metrics.recentlyPlayedMinutes)} hrs`}
-          accent="bg-emerald-500/10 text-emerald-400 ring-emerald-500/20"
-        />
-        <StatCard
-          label="Avg Hrs/Game"
-          value={metrics.averageHoursPerPlayedGame.toFixed(1)}
-          hint={`${metrics.playedGames} played`}
-          accent="bg-sky-500/10 text-sky-300 ring-sky-500/20"
-        />
-        <StatCard
-          label="Completion"
-          value={formatPercent(metrics.completionRate)}
-          hint={`${metrics.unplayedGames} backlog`}
-          accent="bg-amber-500/10 text-amber-300 ring-amber-500/20"
-        />
       </section>
 
       <section className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
