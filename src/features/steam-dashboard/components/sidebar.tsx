@@ -10,7 +10,7 @@ type SidebarProps = {
 
 export function Sidebar({ summary }: SidebarProps) {
   return (
-    <aside className="glass-chrome hidden border-r lg:fixed lg:inset-y-0 lg:left-0 lg:block lg:w-[240px]">
+    <aside className="glass-chrome-strong hidden border-r lg:fixed lg:inset-y-0 lg:left-0 lg:block lg:w-[240px]">
       <div className="flex h-full flex-col">
         <div className="flex h-[68px] items-center border-b border-white/10 px-5">
           <div className="flex items-center gap-2.5">

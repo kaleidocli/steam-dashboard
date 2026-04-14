@@ -14,9 +14,20 @@
   --glass-shadow-soft: 0 18px 35px rgba(8, 12, 24, 0.24);
   --glass-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.22);
   --glass-blur: 24px;
+  --glass-surface-opacity: 0.62;
+  --glass-surface-strong-opacity: 0.78;
+  --glass-surface-soft-opacity: 0.08;
+  --glass-blur-multiplier: 1;
   --gradient-rgb-1: 102 192 244;
   --gradient-rgb-2: 142 197 252;
   --gradient-rgb-3: 255 190 211;
+  --widget-gradient-rgb-1: 155 220 255;
+  --widget-gradient-rgb-2: 197 184 255;
+  --widget-gradient-rgb-3: 255 208 226;
+  --widget-base-rgb: 20 37 60;
+  --widget-tint-alpha-1: 0.1;
+  --widget-tint-alpha-2: 0.06;
+  --widget-tint-alpha-3: 0.08;
   --app-gradient-base: radial-gradient(circle at top, rgba(255, 255, 255, 0.12), transparent 38%),
     linear-gradient(145deg, #07111f 0%, #081425 28%, #0d1b31 68%, #060c17 100%);
 }
@@ -75,27 +86,33 @@ body {
 }
 
 .glass-card {
-  background: var(--glass-surface);
+  background:
+    linear-gradient(145deg, rgb(var(--widget-gradient-rgb-1) / var(--widget-tint-alpha-1)), rgb(var(--widget-gradient-rgb-2) / var(--widget-tint-alpha-2)) 45%, rgb(var(--widget-gradient-rgb-3) / var(--widget-tint-alpha-3)) 100%),
+    rgb(var(--widget-base-rgb) / var(--glass-surface-opacity));
   border: 1px solid var(--glass-border);
   box-shadow: var(--glass-highlight), var(--glass-shadow);
-  backdrop-filter: blur(var(--glass-blur)) saturate(140%);
-  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(140%);
+  backdrop-filter: blur(calc(var(--glass-blur) * var(--glass-blur-multiplier))) saturate(140%);
+  -webkit-backdrop-filter: blur(calc(var(--glass-blur) * var(--glass-blur-multiplier))) saturate(140%);
 }
 
 .glass-card-strong {
-  background: var(--glass-surface-strong);
+  background:
+    linear-gradient(145deg, rgb(var(--widget-gradient-rgb-1) / calc(var(--widget-tint-alpha-1) + 0.03)), rgb(var(--widget-gradient-rgb-2) / calc(var(--widget-tint-alpha-2) + 0.02)) 48%, rgb(var(--widget-gradient-rgb-3) / calc(var(--widget-tint-alpha-3) + 0.01)) 100%),
+    rgb(var(--widget-base-rgb) / var(--glass-surface-strong-opacity));
   border: 1px solid var(--glass-border-strong);
   box-shadow: var(--glass-highlight), var(--glass-shadow);
-  backdrop-filter: blur(var(--glass-blur)) saturate(150%);
-  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(150%);
+  backdrop-filter: blur(calc(var(--glass-blur) * var(--glass-blur-multiplier))) saturate(150%);
+  -webkit-backdrop-filter: blur(calc(var(--glass-blur) * var(--glass-blur-multiplier))) saturate(150%);
 }
 
 .glass-card-soft {
-  background: var(--glass-surface-soft);
+  background:
+    linear-gradient(145deg, rgb(var(--widget-gradient-rgb-1) / calc(var(--widget-tint-alpha-1) + 0.02)), rgb(var(--widget-gradient-rgb-2) / var(--widget-tint-alpha-2)) 52%, rgb(var(--widget-gradient-rgb-3) / var(--widget-tint-alpha-3)) 100%),
+    rgb(var(--widget-base-rgb) / var(--glass-surface-soft-opacity));
   border: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12), var(--glass-shadow-soft);
-  backdrop-filter: blur(calc(var(--glass-blur) * 0.72)) saturate(135%);
-  -webkit-backdrop-filter: blur(calc(var(--glass-blur) * 0.72)) saturate(135%);
+  backdrop-filter: blur(calc(var(--glass-blur) * 0.72 * var(--glass-blur-multiplier))) saturate(135%);
+  -webkit-backdrop-filter: blur(calc(var(--glass-blur) * 0.72 * var(--glass-blur-multiplier))) saturate(135%);
 }
 
 .glass-chrome {
@@ -104,6 +121,19 @@ body {
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14);
   backdrop-filter: blur(calc(var(--glass-blur) * 1.1)) saturate(135%);
   -webkit-backdrop-filter: blur(calc(var(--glass-blur) * 1.1)) saturate(135%);
+}
+
+.glass-chrome-strong {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.04)),
+    rgba(10, 16, 28, 0.72);
+  border-color: rgba(255, 255, 255, 0.18);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.18),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.04),
+    0 14px 34px rgba(4, 8, 18, 0.22);
+  backdrop-filter: blur(calc(var(--glass-blur) * 1.35)) saturate(145%);
+  -webkit-backdrop-filter: blur(calc(var(--glass-blur) * 1.35)) saturate(145%);
 }
 
 .glass-input {

@@ -13,7 +13,7 @@ type TopbarProps = {
 
 export function Topbar({ initialValue, summary }: TopbarProps) {
   return (
-    <header className="glass-chrome sticky top-0 z-20 border-b">
+    <header className="glass-chrome-strong sticky top-0 z-20 border-b">
       <div className="mx-auto flex h-[68px] w-full max-w-[1280px] items-center gap-4 px-4 lg:px-6">
         <div>
           <h1 className="text-[22px] font-semibold tracking-tight text-white">

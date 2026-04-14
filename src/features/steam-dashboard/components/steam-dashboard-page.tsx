@@ -2,6 +2,7 @@ import type {
   SteamTagBreakdown,
   SteamUserSummary,
 } from "@/features/steam-dashboard/api/steam";
+import { BackgroundAppearanceLayer } from "@/features/steam-dashboard/components/background-appearance-layer";
 import { EmptyState } from "@/features/steam-dashboard/components/empty-state";
 import { ErrorState } from "@/features/steam-dashboard/components/error-state";
 import { ProfileDashboard } from "@/features/steam-dashboard/components/profile-dashboard";
@@ -26,6 +27,7 @@ export function SteamDashboardPage({
 }: SteamDashboardPageProps) {
   return (
     <main className="app-shell app-backdrop min-h-screen text-zinc-100 selection:bg-[#8ed8ff]/30 selection:text-white">
+      <BackgroundAppearanceLayer />
       <div className="pointer-events-none fixed inset-0 -z-10">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(255,255,255,0.08),transparent_26%),radial-gradient(circle_at_80%_18%,rgba(255,255,255,0.05),transparent_24%)]" />
       </div>
