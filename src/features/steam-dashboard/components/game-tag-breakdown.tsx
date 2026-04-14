@@ -23,9 +23,29 @@ const TAG_METRIC_OPTIONS: Array<{
   { label: "Hours Played", value: "hoursPlayed" },
 ];
 
+const GENERIC_TAGS = [
+  "Indie",
+  "Action",
+  "Adventure",
+  "Singleplayer",
+  "Multiplayer",
+  "2D",
+  "3D",
+  "Atmospheric",
+  "Great Soundtrack",
+  "Funny",
+  "Violent",
+  "Gore",
+  "Early Access",
+  "Casual",
+  "Co-op",
+  "Online Co-Op",
+];
+
 export function GameTagBreakdown({ tagBreakdown }: GameTagBreakdownProps) {
   const [metric, setMetric] = useState<SteamTagMetric>("titleCount");
   const [includeUnplayed, setIncludeUnplayed] = useState(true);
+  const [includeGenericTags, setIncludeGenericTags] = useState(true);
 
   if (!tagBreakdown || tagBreakdown.tags.length === 0) {
     return (
@@ -63,6 +83,7 @@ export function GameTagBreakdown({ tagBreakdown }: GameTagBreakdownProps) {
     tagBreakdown,
     metric,
     includeUnplayed,
+    includeGenericTags,
   );
   const metricBadge =
     metric === "hoursPlayed"
@@ -97,6 +118,35 @@ export function GameTagBreakdown({ tagBreakdown }: GameTagBreakdownProps) {
           >
             Include Unplayed {includeUnplayed ? "ON" : "OFF"}
           </button>
+          <div className="group relative">
+            <button
+              type="button"
+              aria-pressed={includeGenericTags}
+              onClick={() => setIncludeGenericTags((current) => !current)}
+              className={`rounded-xl border px-3.5 py-2 text-[12px] font-semibold tracking-[0.02em] transition ${
+                includeGenericTags
+                  ? "border-emerald-400/50 bg-emerald-400/15 text-white shadow-[0_0_0_1px_rgba(52,211,153,0.12)]"
+                  : "border-[#334155] bg-[#111827] text-slate-300 hover:border-[#475569] hover:text-white"
+              }`}
+            >
+              Include Generic Tags {includeGenericTags ? "ON" : "OFF"}
+            </button>
+            <div className="pointer-events-none absolute right-0 top-full z-20 mt-2 w-80 rounded-2xl border border-[#2a3648] bg-[#0b1220]/97 p-4 opacity-0 shadow-xl shadow-black/40 transition duration-150 group-hover:translate-y-1 group-hover:opacity-100">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-emerald-300">
+                Generic Tag Filter
+              </p>
+              <p className="mt-2 text-xs leading-5 text-slate-300">
+                Toggle this to include or remove broad, less-specific tags from
+                the widget calculations, row list, and the <span className="font-medium text-white">Other</span> bucket.
+              </p>
+              <p className="mt-3 text-[11px] uppercase tracking-[0.16em] text-slate-500">
+                Generic tags
+              </p>
+              <p className="mt-1 text-xs leading-5 text-slate-400">
+                {GENERIC_TAGS.join(", ")}
+              </p>
+            </div>
+          </div>
           <div className="inline-flex rounded-xl border border-[#1f2937] bg-[#0b1220]/80 p-1">
             {TAG_METRIC_OPTIONS.map((option) => (
               <button
@@ -116,49 +166,57 @@ export function GameTagBreakdown({ tagBreakdown }: GameTagBreakdownProps) {
         </div>
       </div>
 
-      <div className="space-y-2.5">
-        {displayBreakdown.buckets.map((bucket) => (
-          <div
-            key={`${metric}-${includeUnplayed ? "all" : "played"}-${bucket.label}`}
-            className="rounded-xl border border-[#1f2937]/80 bg-[#0b1220]/55 px-3 py-2.5"
-          >
-            <div className="flex items-center gap-3">
-              <div className="flex min-w-0 items-center gap-2 sm:w-[220px] sm:min-w-[220px]">
-                <span
-                  className="h-2.5 w-2.5 rounded-full"
-                  style={{ backgroundColor: bucket.color }}
-                />
-                <span className="truncate text-[13px] font-medium text-slate-200">
-                  {bucket.label}
-                </span>
-              </div>
-
-              <div className="hidden min-w-[140px] flex-1 sm:block">
-                <div className="h-2.5 overflow-hidden rounded-full bg-[#111827] ring-1 ring-inset ring-[#1f2937]">
-                  <div
-                    className="h-full rounded-full transition-[width]"
-                    style={{
-                      width: `${Math.min(bucket.percentage, 100)}%`,
-                      backgroundColor: bucket.color,
-                    }}
+      {displayBreakdown.buckets.length > 0 ? (
+        <div className="space-y-2.5">
+          {displayBreakdown.buckets.map((bucket) => (
+            <div
+              key={`${metric}-${includeUnplayed ? "all" : "played"}-${
+                includeGenericTags ? "generic" : "specific"
+              }-${bucket.label}`}
+              className="rounded-xl border border-[#1f2937]/80 bg-[#0b1220]/55 px-3 py-2.5"
+            >
+              <div className="flex items-center gap-3">
+                <div className="flex min-w-0 items-center gap-2 sm:w-[220px] sm:min-w-[220px]">
+                  <span
+                    className="h-2.5 w-2.5 rounded-full"
+                    style={{ backgroundColor: bucket.color }}
                   />
+                  <span className="truncate text-[13px] font-medium text-slate-200">
+                    {bucket.label}
+                  </span>
                 </div>
-              </div>
 
-              <span className="shrink-0 text-[10px] uppercase tracking-[0.16em] text-slate-500">
-                {Math.round(bucket.titleCount).toLocaleString()} games ·{" "}
-                {formatHours(bucket.totalMinutes)} hrs
-              </span>
+                <div className="hidden min-w-[140px] flex-1 sm:block">
+                  <div className="h-2.5 overflow-hidden rounded-full bg-[#111827] ring-1 ring-inset ring-[#1f2937]">
+                    <div
+                      className="h-full rounded-full transition-[width]"
+                      style={{
+                        width: `${Math.min(bucket.percentage, 100)}%`,
+                        backgroundColor: bucket.color,
+                      }}
+                    />
+                  </div>
+                </div>
 
-              {bucket.label !== "Other" ? (
-                <span className="shrink-0 text-[13px] font-medium text-white">
-                  {formatPercent(bucket.percentage)}
+                <span className="shrink-0 text-[10px] uppercase tracking-[0.16em] text-slate-500">
+                  {Math.round(bucket.titleCount).toLocaleString()} games ·{" "}
+                  {formatHours(bucket.totalMinutes)} hrs
                 </span>
-              ) : null}
+
+                {bucket.label !== "Other" ? (
+                  <span className="shrink-0 text-[13px] font-medium text-white">
+                    {formatPercent(bucket.percentage)}
+                  </span>
+                ) : null}
+              </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      ) : (
+        <p className="text-sm text-slate-400">
+          No tags match the current filters.
+        </p>
+      )}
     </section>
   );
 }

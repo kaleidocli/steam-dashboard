@@ -7,6 +7,24 @@ import type {
 const MIN_VISIBLE_TAGS = 7;
 const MAX_VISIBLE_TAGS = 14;
 const MAX_OTHER_PERCENTAGE = 20;
+const GENERIC_TAGS = new Set([
+  "Indie",
+  "Action",
+  "Adventure",
+  "Singleplayer",
+  "Multiplayer",
+  "2D",
+  "3D",
+  "Atmospheric",
+  "Great Soundtrack",
+  "Funny",
+  "Violent",
+  "Gore",
+  "Early Access",
+  "Casual",
+  "Co-op",
+  "Online Co-Op",
+]);
 const TAG_COLORS = [
   "#f97316",
   "#f43f5e",
@@ -45,6 +63,10 @@ function getDisplayTitleCount(
   includeUnplayed: boolean,
 ) {
   return includeUnplayed ? tag.titleCount : tag.playedTitleCount;
+}
+
+function isGenericTag(label: string) {
+  return GENERIC_TAGS.has(label);
 }
 
 function getMetricValue(
@@ -90,17 +112,24 @@ export function buildSteamTagDisplayBreakdown(
   tagBreakdown: SteamTagBreakdown,
   metric: SteamTagMetric,
   includeUnplayed: boolean,
+  includeGenericTags: boolean,
 ): SteamTagDisplayBreakdown {
-  const filteredTags = tagBreakdown.tags.filter(
-    (tag) => getDisplayTitleCount(tag, includeUnplayed) > 0,
-  );
+  const filteredTags = tagBreakdown.tags.filter((tag) => {
+    if (getDisplayTitleCount(tag, includeUnplayed) <= 0) {
+      return false;
+    }
+
+    if (!includeGenericTags && isGenericTag(tag.label)) {
+      return false;
+    }
+
+    return true;
+  });
   const sortedTags = sortTags(filteredTags, metric, includeUnplayed);
-  const totalMetricValue =
-    metric === "hoursPlayed"
-      ? tagBreakdown.totalTaggedMinutes
-      : includeUnplayed
-        ? tagBreakdown.totalTitleCount
-        : tagBreakdown.totalPlayedTitleCount;
+  const totalMetricValue = filteredTags.reduce(
+    (total, tag) => total + getMetricValue(tag, metric, includeUnplayed),
+    0,
+  );
   const totalGameCount = includeUnplayed
     ? tagBreakdown.totalGames
     : tagBreakdown.totalPlayedGames;
