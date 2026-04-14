@@ -1,9 +1,17 @@
 const STEAM_API_BASE_URL = "https://api.steampowered.com";
+const STEAMSPY_API_BASE_URL = "https://steamspy.com/api.php";
 const STEAM_ID64_PATTERN = /^\d{17}$/;
 const DEFAULT_STEAM_API_CACHE_TTL_SECONDS = 300;
 const MAX_STEAM_API_CACHE_TTL_SECONDS = 86400;
 const MAX_STEAM_API_CACHE_ENTRIES = 500;
+const STEAMSPY_CACHE_TTL_SECONDS = 86400;
+const MAX_STEAMSPY_CACHE_ENTRIES = 2000;
+const STEAMSPY_CONCURRENT_REQUESTS = 20;
 const steamApiResponseCache = new Map<
+  string,
+  { expiresAtMs: number; payload: unknown }
+>();
+const steamSpyResponseCache = new Map<
   string,
   { expiresAtMs: number; payload: unknown }
 >();
@@ -33,6 +41,13 @@ function pruneOldestSteamApiCacheEntry() {
   const oldestKey = steamApiResponseCache.keys().next().value;
   if (oldestKey) {
     steamApiResponseCache.delete(oldestKey);
+  }
+}
+
+function pruneOldestSteamSpyCacheEntry() {
+  const oldestKey = steamSpyResponseCache.keys().next().value;
+  if (oldestKey) {
+    steamSpyResponseCache.delete(oldestKey);
   }
 }
 
@@ -103,6 +118,25 @@ type SteamRecentlyPlayedGamesResponse = {
     total_count: number;
     games?: SteamRecentGame[];
   };
+};
+
+type SteamSpyAppDetailsResponse = {
+  tags?: Record<string, number>;
+};
+
+export type SteamTagBucket = {
+  label: string;
+  count: number;
+  totalMinutes: number;
+  percentage: number;
+  color: string;
+  segment: string;
+};
+
+export type SteamTagBreakdown = {
+  buckets: SteamTagBucket[];
+  background: string;
+  totalTaggedGames: number;
 };
 
 function getSteamApiKey() {
@@ -201,6 +235,175 @@ async function fetchSteamJson<T>(
   }
 
   return payload;
+}
+
+async function fetchSteamSpyAppDetails(appId: number) {
+  const cacheKey = `appdetails:${appId}`;
+  const now = Date.now();
+  const cachedEntry = steamSpyResponseCache.get(cacheKey);
+
+  if (cachedEntry && cachedEntry.expiresAtMs > now) {
+    return cachedEntry.payload as SteamSpyAppDetailsResponse;
+  }
+
+  if (cachedEntry) {
+    steamSpyResponseCache.delete(cacheKey);
+  }
+
+  const searchParams = new URLSearchParams({
+    request: "appdetails",
+    appid: String(appId),
+  });
+
+  const response = await fetch(`${STEAMSPY_API_BASE_URL}?${searchParams}`, {
+    next: {
+      revalidate: STEAMSPY_CACHE_TTL_SECONDS,
+      tags: ["steamspy-api", `steamspy-api:app:${appId}`],
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(
+      `SteamSpy request failed with status ${response.status} ${response.statusText}.`,
+    );
+  }
+
+  const payload = (await response.json()) as SteamSpyAppDetailsResponse;
+
+  steamSpyResponseCache.set(cacheKey, {
+    expiresAtMs: now + STEAMSPY_CACHE_TTL_SECONDS * 1000,
+    payload,
+  });
+
+  if (steamSpyResponseCache.size > MAX_STEAMSPY_CACHE_ENTRIES) {
+    pruneOldestSteamSpyCacheEntry();
+  }
+
+  return payload;
+}
+
+function getTopTag(tags?: Record<string, number>) {
+  if (!tags) {
+    return null;
+  }
+
+  const entries = Object.entries(tags);
+  if (entries.length === 0) {
+    return null;
+  }
+
+  const [topTag] = entries.sort((left, right) => right[1] - left[1])[0];
+  return topTag;
+}
+
+const TAG_COLORS = [
+  "#f97316",
+  "#f43f5e",
+  "#a855f7",
+  "#6366f1",
+  "#22d3ee",
+  "#14b8a6",
+  "#84cc16",
+  "#eab308",
+];
+
+export async function getSteamTagBreakdown(
+  ownedGames: SteamOwnedGame[],
+): Promise<SteamTagBreakdown> {
+  const playedGames = ownedGames.filter((game) => game.playtime_forever > 0);
+  const tagTotals = new Map<string, { count: number; totalMinutes: number }>();
+
+  for (
+    let index = 0;
+    index < playedGames.length;
+    index += STEAMSPY_CONCURRENT_REQUESTS
+  ) {
+    const gamesBatch = playedGames.slice(
+      index,
+      index + STEAMSPY_CONCURRENT_REQUESTS,
+    );
+
+    const batchResults = await Promise.all(
+      gamesBatch.map(async (game) => {
+        try {
+          const details = await fetchSteamSpyAppDetails(game.appid);
+          return {
+            game,
+            topTag: getTopTag(details.tags),
+          };
+        } catch {
+          return {
+            game,
+            topTag: null,
+          };
+        }
+      }),
+    );
+
+    for (const { game, topTag } of batchResults) {
+      const tagLabel = topTag ?? "Unknown";
+      const existing = tagTotals.get(tagLabel);
+
+      if (existing) {
+        existing.count += 1;
+        existing.totalMinutes += game.playtime_forever;
+      } else {
+        tagTotals.set(tagLabel, {
+          count: 1,
+          totalMinutes: game.playtime_forever,
+        });
+      }
+    }
+  }
+
+  const sortedTags = [...tagTotals.entries()].sort((left, right) => {
+    if (right[1].count === left[1].count) {
+      return right[1].totalMinutes - left[1].totalMinutes;
+    }
+
+    return right[1].count - left[1].count;
+  });
+  const visibleTags = sortedTags.slice(0, 7);
+  const remainingTags = sortedTags.slice(7);
+
+  if (remainingTags.length > 0) {
+    const otherTotals = remainingTags.reduce(
+      (aggregate, [, current]) => {
+        aggregate.count += current.count;
+        aggregate.totalMinutes += current.totalMinutes;
+        return aggregate;
+      },
+      { count: 0, totalMinutes: 0 },
+    );
+    visibleTags.push(["Other", otherTotals]);
+  }
+
+  const totalTaggedGames = playedGames.length || 1;
+  let currentAngle = 0;
+  const buckets = visibleTags.map(([label, value], index) => {
+    const percentage = (value.count / totalTaggedGames) * 100;
+    const start = currentAngle;
+    currentAngle += (value.count / totalTaggedGames) * 360;
+    const color = TAG_COLORS[index % TAG_COLORS.length];
+
+    return {
+      label,
+      count: value.count,
+      totalMinutes: value.totalMinutes,
+      percentage,
+      color,
+      segment: `${color} ${start.toFixed(1)}deg ${currentAngle.toFixed(1)}deg`,
+    };
+  });
+
+  return {
+    buckets,
+    background:
+      buckets.length > 0
+        ? `conic-gradient(${buckets.map((bucket) => bucket.segment).join(", ")})`
+        : "conic-gradient(#1f2937 0deg 360deg)",
+    totalTaggedGames: playedGames.length,
+  };
 }
 
 export async function getSteamUserSummary(

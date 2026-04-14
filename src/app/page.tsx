@@ -9,7 +9,7 @@ type HomePageProps = {
 
 export default async function Home({ searchParams }: HomePageProps) {
   const resolvedSearchParams = await searchParams;
-  const { requestedUser, summary, error } = await loadSteamDashboard(
+  const { requestedUser, summary, tagBreakdown, error } = await loadSteamDashboard(
     resolvedSearchParams.user,
   );
 
@@ -17,6 +17,7 @@ export default async function Home({ searchParams }: HomePageProps) {
     <SteamDashboardPage
       requestedUser={requestedUser}
       summary={summary}
+      tagBreakdown={tagBreakdown}
       error={error}
     />
   );

@@ -1,4 +1,7 @@
-import type { SteamUserSummary } from "@/features/steam-dashboard/api/steam";
+import type {
+  SteamTagBreakdown,
+  SteamUserSummary,
+} from "@/features/steam-dashboard/api/steam";
 import { EmptyState } from "@/features/steam-dashboard/components/empty-state";
 import { ErrorState } from "@/features/steam-dashboard/components/error-state";
 import { ProfileDashboard } from "@/features/steam-dashboard/components/profile-dashboard";
@@ -8,6 +11,7 @@ import { Topbar } from "@/features/steam-dashboard/components/topbar";
 type SteamDashboardPageProps = {
   requestedUser: string;
   summary: SteamUserSummary | null;
+  tagBreakdown: SteamTagBreakdown | null;
   error: {
     message: string;
     statusCode: number;
@@ -17,6 +21,7 @@ type SteamDashboardPageProps = {
 export function SteamDashboardPage({
   requestedUser,
   summary,
+  tagBreakdown,
   error,
 }: SteamDashboardPageProps) {
   return (
@@ -35,11 +40,14 @@ export function SteamDashboardPage({
           {requestedUser && error ? (
             <ErrorState message={error.message} requestedUser={requestedUser} />
           ) : null}
-          {summary ? <ProfileDashboard summary={summary} /> : null}
+          {summary ? (
+            <ProfileDashboard summary={summary} tagBreakdown={tagBreakdown} />
+          ) : null}
 
           <footer className="mt-8 pb-6 text-center">
             <p className="text-[12px] text-slate-500">
-              Data via Steam Web API • Search by Steam ID64 or vanity name •{" "}
+              Data via Steam Web API + SteamSpy • Search by Steam ID64 or vanity
+              name •{" "}
               <span className="text-[#66c0f4]">Server-rendered</span>
             </p>
           </footer>

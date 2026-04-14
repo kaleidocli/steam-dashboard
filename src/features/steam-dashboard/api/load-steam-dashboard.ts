@@ -1,5 +1,6 @@
 import {
   getSteamErrorDetails,
+  getSteamTagBreakdown,
   getSteamUserSummaryByIdentifier,
 } from "@/features/steam-dashboard/api/steam";
 
@@ -17,20 +18,25 @@ export async function loadSteamDashboard(identifier?: string | string[]) {
     return {
       requestedUser: "",
       summary: null,
+      tagBreakdown: null,
       error: null,
     };
   }
 
   try {
+    const summary = await getSteamUserSummaryByIdentifier(trimmedUser);
+
     return {
       requestedUser: trimmedUser,
-      summary: await getSteamUserSummaryByIdentifier(trimmedUser),
+      summary,
+      tagBreakdown: await getSteamTagBreakdown(summary.ownedGames),
       error: null,
     };
   } catch (error) {
     return {
       requestedUser: trimmedUser,
       summary: null,
+      tagBreakdown: null,
       error: getSteamErrorDetails(error),
     };
   }

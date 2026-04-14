@@ -4,6 +4,7 @@ import {
   formatUnixDate,
   getPersonaStatus,
   getSteamCapsuleImageUrl,
+  type SteamTagBreakdown,
   type SteamUserSummary,
 } from "@/features/steam-dashboard/api/steam";
 import {
@@ -14,6 +15,10 @@ import {
 } from "@/features/steam-dashboard/utils/dashboard";
 
 type ProfileDashboardProps = {
+  summary: SteamUserSummary;
+  tagBreakdown: SteamTagBreakdown | null;
+};
+type SummaryProps = {
   summary: SteamUserSummary;
 };
 
@@ -47,7 +52,7 @@ function StatCard({ label, value, hint, accent }: StatCardProps) {
   );
 }
 
-function TopHoursChart({ summary }: ProfileDashboardProps) {
+function TopHoursChart({ summary }: SummaryProps) {
   const topGames = summary.ownedGames.slice(0, 5);
   const highestMinutes = topGames[0]?.playtime_forever ?? 1;
 
@@ -88,7 +93,7 @@ function TopHoursChart({ summary }: ProfileDashboardProps) {
   );
 }
 
-function PlaytimeBreakdown({ summary }: ProfileDashboardProps) {
+function PlaytimeBreakdown({ summary }: SummaryProps) {
   const breakdown = getPlaytimeBuckets(summary);
 
   return (
@@ -178,7 +183,74 @@ function PlaytimeBreakdown({ summary }: ProfileDashboardProps) {
   );
 }
 
-function RecentActivity({ summary }: ProfileDashboardProps) {
+function GameTagBreakdown({ tagBreakdown }: { tagBreakdown: SteamTagBreakdown | null }) {
+  return (
+    <section className="rounded-2xl border border-[#1f2937] bg-[#121a2b]/85 p-5 shadow-xl shadow-black/30">
+      <div className="mb-5 flex items-center justify-between">
+        <h3 className="text-[15px] font-semibold text-white">Tag Breakdown</h3>
+        <span className="rounded-full border border-[#1f2937] bg-[#0b1220] px-2 py-1 text-[11px] text-slate-400">
+          {tagBreakdown?.totalTaggedGames ?? 0} played games
+        </span>
+      </div>
+
+      {tagBreakdown && tagBreakdown.buckets.length > 0 ? (
+        <div className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr] xl:items-start">
+          <div className="flex items-center justify-center xl:sticky xl:top-5">
+            <div
+              className="relative h-56 w-56 rounded-full"
+              style={{ background: tagBreakdown.background }}
+            >
+              <div className="absolute inset-[30px] flex items-center justify-center rounded-full bg-[#121a2b] ring-1 ring-inset ring-[#1f2937]">
+                <div className="text-center">
+                  <p className="text-[10px] uppercase tracking-[0.24em] text-slate-500">
+                    Top Tag
+                  </p>
+                  <p className="mt-1 text-lg font-semibold leading-none text-white">
+                    {tagBreakdown.buckets[0].label}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="space-y-2">
+            {tagBreakdown.buckets.map((bucket) => (
+              <div
+                key={bucket.label}
+                className="rounded-xl border border-[#1f2937]/80 bg-[#0b1220]/55 px-3 py-2.5"
+              >
+                <div className="flex items-start gap-3">
+                  <span
+                    className="mt-1 h-2 w-2 rounded-full"
+                    style={{ backgroundColor: bucket.color }}
+                  />
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-baseline justify-between gap-3">
+                      <span className="text-[13px] font-medium text-slate-200">
+                        {bucket.label}
+                      </span>
+                      <span className="text-[13px] font-medium text-white">
+                        {formatPercent(bucket.percentage)}
+                      </span>
+                    </div>
+                    <p className="mt-0.5 text-[10px] uppercase tracking-[0.16em] text-slate-500">
+                      {bucket.count} games · {formatHours(bucket.totalMinutes)} hrs
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : (
+        <p className="text-sm text-slate-400">
+          No tag data available yet. SteamSpy tags are fetched from played games.
+        </p>
+      )}
+    </section>
+  );
+}
+
+function RecentActivity({ summary }: SummaryProps) {
   return (
     <section className="rounded-2xl border border-[#1f2937] bg-[#121a2b]/85 p-5 shadow-xl shadow-black/30">
       <div className="mb-5 flex items-center justify-between">
@@ -229,7 +301,7 @@ function RecentActivity({ summary }: ProfileDashboardProps) {
   );
 }
 
-function BacklogTable({ summary }: ProfileDashboardProps) {
+function BacklogTable({ summary }: SummaryProps) {
   const backlogGames = summary.ownedGames.filter(
     (game) => game.playtime_forever === 0,
   );
@@ -300,7 +372,7 @@ function BacklogTable({ summary }: ProfileDashboardProps) {
   );
 }
 
-export function ProfileDashboard({ summary }: ProfileDashboardProps) {
+export function ProfileDashboard({ summary, tagBreakdown }: ProfileDashboardProps) {
   const metrics = getDashboardMetrics(summary);
 
   return (
@@ -377,6 +449,8 @@ export function ProfileDashboard({ summary }: ProfileDashboardProps) {
         <TopHoursChart summary={summary} />
         <PlaytimeBreakdown summary={summary} />
       </section>
+
+      <GameTagBreakdown tagBreakdown={tagBreakdown} />
 
       <section className="grid gap-6 xl:grid-cols-[0.95fr_1.05fr]">
         <RecentActivity summary={summary} />
