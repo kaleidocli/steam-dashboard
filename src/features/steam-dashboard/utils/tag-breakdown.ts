@@ -25,6 +25,7 @@ export type SteamTagDisplayBucket = {
   totalMinutes: number;
   value: number;
   percentage: number;
+  chartPercentage: number;
   color: string;
   segment: string;
 };
@@ -33,6 +34,7 @@ export type SteamTagDisplayBreakdown = {
   background: string;
   buckets: SteamTagDisplayBucket[];
   totalMetricValue: number;
+  totalGameCount: number;
   totalGames: number;
   totalPlayedGames: number;
   totalPlayedMinutes: number;
@@ -99,6 +101,9 @@ export function buildSteamTagDisplayBreakdown(
       : includeUnplayed
         ? tagBreakdown.totalTitleCount
         : tagBreakdown.totalPlayedTitleCount;
+  const totalGameCount = includeUnplayed
+    ? tagBreakdown.totalGames
+    : tagBreakdown.totalPlayedGames;
   const safeTotalMetricValue = totalMetricValue || 1;
 
   let visibleTagCount = Math.min(MIN_VISIBLE_TAGS, sortedTags.length);
@@ -141,10 +146,14 @@ export function buildSteamTagDisplayBreakdown(
       (total, tag) => total + getMetricValue(tag, metric, includeUnplayed),
       0,
     ) || 1;
+  const percentageDenominator = tagBreakdown.totalGames || 1;
   let currentAngle = 0;
   const buckets = visibleTags.map((tag, index) => {
     const value = getMetricValue(tag, metric, includeUnplayed);
+    const titleCount = getDisplayTitleCount(tag, includeUnplayed);
     const percentage =
+      tag.label === "Other" ? 0 : (titleCount / percentageDenominator) * 100;
+    const chartPercentage =
       tag.label === "Other" ? 0 : (value / chartTotalMetricValue) * 100;
     const start = currentAngle;
     if (tag.label !== "Other") {
@@ -154,11 +163,12 @@ export function buildSteamTagDisplayBreakdown(
 
     return {
       label: tag.label,
-      titleCount: getDisplayTitleCount(tag, includeUnplayed),
+      titleCount,
       playedTitleCount: tag.playedTitleCount,
       totalMinutes: tag.totalMinutes,
       value,
       percentage,
+      chartPercentage,
       color,
       segment: `${color} ${start.toFixed(1)}deg ${currentAngle.toFixed(1)}deg`,
     };
@@ -174,6 +184,7 @@ export function buildSteamTagDisplayBreakdown(
         : "conic-gradient(#1f2937 0deg 360deg)",
     buckets,
     totalMetricValue,
+    totalGameCount,
     totalGames: tagBreakdown.totalGames,
     totalPlayedGames: tagBreakdown.totalPlayedGames,
     totalPlayedMinutes: tagBreakdown.totalPlayedMinutes,

@@ -67,15 +67,15 @@ export function GameTagBreakdown({ tagBreakdown }: GameTagBreakdownProps) {
   const metricBadge =
     metric === "hoursPlayed"
       ? `${formatHours(displayBreakdown.totalMetricValue)} tagged hrs`
-      : `${Math.round(displayBreakdown.totalMetricValue).toLocaleString()} tagged ${
-          includeUnplayed ? "titles" : "played games"
+      : `${displayBreakdown.totalGameCount.toLocaleString()} ${
+          includeUnplayed ? "total games" : "played games"
         }`;
   const centerLabel =
     metric === "hoursPlayed"
       ? "Tagged Hours"
       : includeUnplayed
-        ? "Tagged Titles"
-        : "Tagged Games";
+        ? "Total Games"
+        : "Played Games";
 
   return (
     <section className="rounded-2xl border border-[#1f2937] bg-[#121a2b]/85 p-5 shadow-xl shadow-black/30">
@@ -136,7 +136,7 @@ export function GameTagBreakdown({ tagBreakdown }: GameTagBreakdownProps) {
                 <p className="mt-1 text-2xl font-semibold leading-none text-white">
                   {metric === "hoursPlayed"
                     ? formatHours(displayBreakdown.totalMetricValue)
-                    : Math.round(displayBreakdown.totalMetricValue).toLocaleString()}
+                    : displayBreakdown.totalGameCount.toLocaleString()}
                 </p>
               </div>
             </div>
