@@ -7,6 +7,7 @@ import {
   type SteamTagBreakdown,
   type SteamUserSummary,
 } from "@/features/steam-dashboard/api/steam";
+import { FavoriteGamesWidget } from "@/features/steam-dashboard/components/favorite-games-widget";
 import { GameTagBreakdown } from "@/features/steam-dashboard/components/game-tag-breakdown";
 import { TopHoursChart } from "@/features/steam-dashboard/components/top-hours-chart";
 import {
@@ -368,6 +369,8 @@ export function ProfileDashboard({ summary, tagBreakdown }: ProfileDashboardProp
           </div>
         </div>
       </section>
+
+      <FavoriteGamesWidget summary={summary} />
 
       <section className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
         <TopHoursChart summary={summary} tagBreakdown={tagBreakdown} />

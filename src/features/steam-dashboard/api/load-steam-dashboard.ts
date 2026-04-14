@@ -23,6 +23,15 @@ export async function loadSteamDashboard(identifier?: string | string[]) {
     };
   }
 
+  if (trimmedUser.toLocaleLowerCase() === "me") {
+    return {
+      requestedUser: "me",
+      summary: null,
+      tagBreakdown: null,
+      error: null,
+    };
+  }
+
   try {
     const summary = await getSteamUserSummaryByIdentifier(trimmedUser);
 

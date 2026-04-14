@@ -319,7 +319,7 @@ export function GradientThemeControl() {
           className="inline-flex h-2.5 w-2.5 rounded-full shadow-[0_0_14px_rgba(125,211,252,0.45)]"
           style={previewStyle}
         />
-        Background
+        UI Settings
       </button>
 
       {isOpen ? (
