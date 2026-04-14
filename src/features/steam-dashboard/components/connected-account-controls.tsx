@@ -23,10 +23,20 @@ type ConnectSteamResponse = {
 
 type ConnectedAccountControlsProps = {
   currentSteamId?: string;
+  placement?: "topbar" | "rail";
+  connectLabel?: string;
+  hideWhenDisconnected?: boolean;
+  hideWhenConnected?: boolean;
+  railPopoverDirection?: "up" | "down";
 };
 
 export function ConnectedAccountControls({
   currentSteamId,
+  placement = "topbar",
+  connectLabel = "Connect Steam",
+  hideWhenDisconnected = false,
+  hideWhenConnected = false,
+  railPopoverDirection = "up",
 }: ConnectedAccountControlsProps) {
   const router = useRouter();
   const pathname = usePathname();
@@ -159,14 +169,26 @@ export function ConnectedAccountControls({
     Boolean(state.connectedAccount?.steamId) &&
     Boolean(currentSteamId) &&
     state.connectedAccount?.steamId === currentSteamId;
+  const isRail = placement === "rail";
+
+  if ((!state.connectedAccount && hideWhenDisconnected) || (state.connectedAccount && hideWhenConnected)) {
+    return null;
+  }
 
   return (
-    <div ref={containerRef} className="relative flex items-center gap-2">
+    <div
+      ref={containerRef}
+      className={`relative flex ${isRail ? "w-full" : "items-center gap-2"}`}
+    >
       {state.connectedAccount ? (
         <button
           type="button"
           onClick={() => setIsOpen((current) => !current)}
-          className="flex items-center gap-2.5 rounded-2xl px-1 py-1 text-left transition hover:bg-white/[0.04]"
+          className={`flex items-center gap-2.5 text-left transition hover:bg-white/[0.04] ${
+            isRail
+              ? "w-full rounded-2xl px-3 py-3"
+              : "rounded-2xl px-1 py-1"
+          }`}
         >
           <div className="relative">
             <Image
@@ -178,7 +200,7 @@ export function ConnectedAccountControls({
             />
             <span className="absolute -bottom-0 -right-0 h-2.5 w-2.5 rounded-full bg-emerald-400 ring-2 ring-[#10203b]" />
           </div>
-          <div className="hidden sm:block">
+          <div className={isRail ? "min-w-0 flex-1" : "hidden sm:block"}>
             <span
               className={`text-[14px] font-medium ${
                 isOwnProfile ? "text-[#9bdcff]" : "text-white"
@@ -195,14 +217,26 @@ export function ConnectedAccountControls({
         <button
           type="button"
           onClick={() => setIsOpen((current) => !current)}
-          className="glass-input rounded-full px-3 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-slate-200 transition hover:border-white/18 hover:text-white"
+          className={`glass-input text-xs font-semibold uppercase tracking-[0.16em] text-slate-200 transition hover:border-white/18 hover:text-white ${
+            isRail
+              ? "w-full rounded-2xl px-4 py-3 text-left"
+              : "rounded-full px-3 py-2"
+          }`}
         >
-          Connect Steam
+          {connectLabel}
         </button>
       )}
 
       {isOpen ? (
-        <div className="glass-popover absolute right-0 top-full z-30 mt-3 w-[21rem] rounded-2xl p-3">
+        <div
+          className={`glass-popover absolute z-30 w-[21rem] rounded-2xl p-3 ${
+            isRail
+              ? railPopoverDirection === "down"
+                ? "left-0 top-full mt-3"
+                : "bottom-full left-0 mb-3"
+              : "right-0 top-full mt-3"
+          }`}
+        >
           {state.connectedAccount ? (
             <div className="space-y-3">
               <div className="flex items-center gap-3">

@@ -7,6 +7,7 @@ import { ConnectedAccountBootstrap } from "@/features/steam-dashboard/components
 import { EmptyState } from "@/features/steam-dashboard/components/empty-state";
 import { ErrorState } from "@/features/steam-dashboard/components/error-state";
 import { ProfileDashboard } from "@/features/steam-dashboard/components/profile-dashboard";
+import { RightSidebar } from "@/features/steam-dashboard/components/right-sidebar";
 import { Sidebar } from "@/features/steam-dashboard/components/sidebar";
 import { Topbar } from "@/features/steam-dashboard/components/topbar";
 
@@ -35,14 +36,15 @@ export function SteamDashboardPage({
       </div>
 
       <Sidebar summary={summary} />
+      <RightSidebar initialValue={requestedUser === "me" ? "" : requestedUser} />
 
-      <div className="min-h-screen w-full lg:pl-[240px]">
+      <div className="min-h-screen w-full lg:px-[248px] lg:pr-[320px]">
         <Topbar
           initialValue={requestedUser === "me" ? "" : requestedUser}
           summary={summary}
         />
 
-        <div className="mx-auto w-full max-w-[1280px] p-4 lg:p-6">
+        <div className="mx-auto w-full max-w-[1280px] p-4 lg:px-8 lg:py-6">
           {!summary && !error && (!requestedUser || requestedUser === "me") ? (
             <EmptyState />
           ) : null}
