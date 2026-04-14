@@ -104,12 +104,18 @@ export function buildSteamTagDisplayBreakdown(
     });
   }
 
+  const chartTags = visibleTags.filter((tag) => tag.label !== "Other");
+  const chartTotalMetricValue =
+    chartTags.reduce((total, tag) => total + getMetricValue(tag, metric), 0) || 1;
   let currentAngle = 0;
   const buckets = visibleTags.map((tag, index) => {
     const value = getMetricValue(tag, metric);
-    const percentage = (value / safeTotalMetricValue) * 100;
+    const percentage =
+      tag.label === "Other" ? 0 : (value / chartTotalMetricValue) * 100;
     const start = currentAngle;
-    currentAngle += (value / safeTotalMetricValue) * 360;
+    if (tag.label !== "Other") {
+      currentAngle += (value / chartTotalMetricValue) * 360;
+    }
     const color = TAG_COLORS[index % TAG_COLORS.length];
 
     return {
@@ -125,8 +131,11 @@ export function buildSteamTagDisplayBreakdown(
 
   return {
     background:
-      buckets.length > 0
-        ? `conic-gradient(${buckets.map((bucket) => bucket.segment).join(", ")})`
+      buckets.some((bucket) => bucket.label !== "Other")
+        ? `conic-gradient(${buckets
+            .filter((bucket) => bucket.label !== "Other")
+            .map((bucket) => bucket.segment)
+            .join(", ")})`
         : "conic-gradient(#1f2937 0deg 360deg)",
     buckets,
     totalMetricValue,

@@ -142,9 +142,11 @@ export function GameTagBreakdown({ tagBreakdown }: GameTagBreakdownProps) {
                   <span className="text-[12px] font-medium text-slate-200">
                     {bucket.label}
                   </span>
-                  <span className="text-[11px] text-slate-400">
-                    {formatPercent(bucket.percentage)}
-                  </span>
+                  {bucket.label !== "Other" ? (
+                    <span className="text-[11px] text-slate-400">
+                      {formatPercent(bucket.percentage)}
+                    </span>
+                  ) : null}
                 </span>
               </span>
             ))}
@@ -168,9 +170,11 @@ export function GameTagBreakdown({ tagBreakdown }: GameTagBreakdownProps) {
                     {formatWeightedTitleCount(bucket.titleCount)} games ·{" "}
                     {formatHours(bucket.totalMinutes)} hrs
                   </span>
-                  <span className="shrink-0 text-[13px] font-medium text-white">
-                    {formatPercent(bucket.percentage)}
-                  </span>
+                  {bucket.label !== "Other" ? (
+                    <span className="shrink-0 text-[13px] font-medium text-white">
+                      {formatPercent(bucket.percentage)}
+                    </span>
+                  ) : null}
                 </div>
               </div>
             ))}
