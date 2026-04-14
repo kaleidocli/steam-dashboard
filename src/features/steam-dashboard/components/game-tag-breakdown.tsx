@@ -70,12 +70,6 @@ export function GameTagBreakdown({ tagBreakdown }: GameTagBreakdownProps) {
       : `${displayBreakdown.totalGameCount.toLocaleString()} ${
           includeUnplayed ? "total games" : "played games"
         }`;
-  const centerLabel =
-    metric === "hoursPlayed"
-      ? "Tagged Hours"
-      : includeUnplayed
-        ? "Total Games"
-        : "Played Games";
 
   return (
     <section className="rounded-2xl border border-[#1f2937] bg-[#121a2b]/85 p-5 shadow-xl shadow-black/30">
@@ -122,80 +116,48 @@ export function GameTagBreakdown({ tagBreakdown }: GameTagBreakdownProps) {
         </div>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-[0.7fr_1.3fr] lg:items-start">
-        <div className="flex justify-center">
+      <div className="space-y-2.5">
+        {displayBreakdown.buckets.map((bucket) => (
           <div
-            className="relative h-44 w-44 rounded-full"
-            style={{ background: displayBreakdown.background }}
+            key={`${metric}-${includeUnplayed ? "all" : "played"}-${bucket.label}`}
+            className="rounded-xl border border-[#1f2937]/80 bg-[#0b1220]/55 px-3 py-2.5"
           >
-            <div className="absolute inset-[24px] flex items-center justify-center rounded-full bg-[#121a2b] ring-1 ring-inset ring-[#1f2937]">
-              <div className="text-center">
-                <p className="text-[10px] uppercase tracking-[0.22em] text-slate-500">
-                  {centerLabel}
-                </p>
-                <p className="mt-1 text-2xl font-semibold leading-none text-white">
-                  {metric === "hoursPlayed"
-                    ? formatHours(displayBreakdown.totalMetricValue)
-                    : displayBreakdown.totalGameCount.toLocaleString()}
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="space-y-4">
-          <div className="flex flex-wrap gap-2">
-            {displayBreakdown.buckets.map((bucket) => (
-              <span
-                key={bucket.label}
-                className="rounded-full border border-[#1f2937] bg-[#0b1220]/75 px-3 py-1.5"
-              >
-                <span className="flex items-center gap-2">
-                  <span
-                    className="h-2 w-2 rounded-full"
-                    style={{ backgroundColor: bucket.color }}
-                  />
-                  <span className="text-[12px] font-medium text-slate-200">
-                    {bucket.label}
-                  </span>
-                  {bucket.label !== "Other" ? (
-                    <span className="text-[11px] text-slate-400">
-                      {formatPercent(bucket.percentage)}
-                    </span>
-                  ) : null}
+            <div className="flex items-center gap-3">
+              <div className="flex min-w-0 items-center gap-2 sm:w-[220px] sm:min-w-[220px]">
+                <span
+                  className="h-2.5 w-2.5 rounded-full"
+                  style={{ backgroundColor: bucket.color }}
+                />
+                <span className="truncate text-[13px] font-medium text-slate-200">
+                  {bucket.label}
                 </span>
-              </span>
-            ))}
-          </div>
+              </div>
 
-          <div className="space-y-2">
-            {displayBreakdown.buckets.map((bucket) => (
-              <div
-                key={`${metric}-${includeUnplayed ? "all" : "played"}-${bucket.label}`}
-                className="rounded-xl border border-[#1f2937]/80 bg-[#0b1220]/55 px-3 py-2"
-              >
-                <div className="flex items-center gap-3">
-                  <span
-                    className="h-2 w-2 rounded-full"
-                    style={{ backgroundColor: bucket.color }}
+              <div className="hidden min-w-[140px] flex-1 sm:block">
+                <div className="h-2.5 overflow-hidden rounded-full bg-[#111827] ring-1 ring-inset ring-[#1f2937]">
+                  <div
+                    className="h-full rounded-full transition-[width]"
+                    style={{
+                      width: `${Math.min(bucket.percentage, 100)}%`,
+                      backgroundColor: bucket.color,
+                    }}
                   />
-                  <span className="min-w-0 flex-1 truncate text-[13px] font-medium text-slate-200">
-                    {bucket.label}
-                  </span>
-                  <span className="shrink-0 text-[10px] uppercase tracking-[0.16em] text-slate-500">
-                    {Math.round(bucket.titleCount).toLocaleString()} games ·{" "}
-                    {formatHours(bucket.totalMinutes)} hrs
-                  </span>
-                  {bucket.label !== "Other" ? (
-                    <span className="shrink-0 text-[13px] font-medium text-white">
-                      {formatPercent(bucket.percentage)}
-                    </span>
-                  ) : null}
                 </div>
               </div>
-            ))}
+
+              <span className="shrink-0 text-[10px] uppercase tracking-[0.16em] text-slate-500">
+                {Math.round(bucket.titleCount).toLocaleString()} games ·{" "}
+                {formatHours(bucket.totalMinutes)} hrs
+              </span>
+
+              {bucket.label !== "Other" ? (
+                <span className="shrink-0 text-[13px] font-medium text-white">
+                  {formatPercent(bucket.percentage)}
+                </span>
+              ) : null}
+            </div>
           </div>
-        </div>
+        ))}
       </div>
     </section>
   );
