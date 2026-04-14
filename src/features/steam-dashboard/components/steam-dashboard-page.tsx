@@ -25,9 +25,9 @@ export function SteamDashboardPage({
   error,
 }: SteamDashboardPageProps) {
   return (
-    <main className="min-h-screen bg-[#0b1220] text-zinc-200 selection:bg-[#66c0f4]/30 selection:text-white">
-      <div className="fixed inset-0 -z-10">
-        <div className="absolute inset-0 bg-[radial-gradient(60%_40%_at_50%_0%,rgba(102,192,244,0.15),transparent_60%),radial-gradient(40%_30%_at_80%_20%,rgba(59,130,246,0.1),transparent_50%)]" />
+    <main className="app-shell app-backdrop min-h-screen text-zinc-100 selection:bg-[#8ed8ff]/30 selection:text-white">
+      <div className="pointer-events-none fixed inset-0 -z-10">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(255,255,255,0.08),transparent_26%),radial-gradient(circle_at_80%_18%,rgba(255,255,255,0.05),transparent_24%)]" />
       </div>
 
       <Sidebar summary={summary} />
@@ -45,10 +45,9 @@ export function SteamDashboardPage({
           ) : null}
 
           <footer className="mt-8 pb-6 text-center">
-            <p className="text-[12px] text-slate-500">
-              Data via Steam Web API + SteamSpy • Search by Steam ID64 or vanity
-              name •{" "}
-              <span className="text-[#66c0f4]">Server-rendered</span>
+            <p className="text-[12px] text-slate-400">
+              Data via Steam Web API + SteamSpy / Search by Steam ID64 or vanity
+              name / <span className="text-[#9bdcff]">Server-rendered</span>
             </p>
           </footer>
         </div>

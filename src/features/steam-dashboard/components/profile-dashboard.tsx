@@ -34,9 +34,9 @@ type StatCardProps = {
 
 function StatPill({ label, value, hint, accent }: StatCardProps) {
   return (
-    <div className="min-w-[136px] rounded-xl border border-[#1f2937]/80 bg-[#0b1220]/60 px-3 py-2.5">
+    <div className="glass-card-soft min-w-[136px] rounded-2xl px-3 py-2.5">
       <div className="flex items-start justify-between gap-3">
-        <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#66c0f4]">
+        <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#9bdcff]">
           {label}
         </p>
         <span
@@ -56,14 +56,14 @@ function PlaytimeBreakdown({ summary }: SummaryProps) {
   const breakdown = getPlaytimeBuckets(summary);
 
   return (
-    <section className="rounded-2xl border border-[#1f2937] bg-[#121a2b]/85 p-5 shadow-xl shadow-black/30">
+    <section className="glass-card rounded-2xl p-5">
       <div className="mb-5 flex items-center justify-between">
         <div>
           <h3 className="text-[15px] font-semibold text-white">
             Playtime Breakdown
           </h3>
         </div>
-        <span className="rounded-full border border-[#1f2937] bg-[#0b1220] px-2 py-1 text-[11px] text-slate-400">
+        <span className="glass-input rounded-full px-2 py-1 text-[11px] text-slate-300">
           {summary.ownedGames.length} games
         </span>
       </div>
@@ -73,9 +73,9 @@ function PlaytimeBreakdown({ summary }: SummaryProps) {
             className="relative h-56 w-56 rounded-full"
             style={{ background: breakdown.background }}
           >
-            <div className="absolute inset-[30px] flex items-center justify-center rounded-full bg-[#121a2b] ring-1 ring-inset ring-[#1f2937]">
+            <div className="glass-card-strong absolute inset-[30px] flex items-center justify-center rounded-full ring-1 ring-inset ring-white/8">
               <div className="text-center">
-                <p className="text-[10px] uppercase tracking-[0.24em] text-slate-500">
+                <p className="text-[10px] uppercase tracking-[0.24em] text-slate-400">
                   Total Games
                 </p>
                 <p className="mt-1 text-3xl font-semibold leading-none text-white">
@@ -89,7 +89,7 @@ function PlaytimeBreakdown({ summary }: SummaryProps) {
           {breakdown.buckets.map((bucket) => (
             <div
               key={bucket.label}
-              className="group relative rounded-xl border border-[#1f2937]/80 bg-[#0b1220]/55 px-3 py-2.5"
+              className="glass-card-soft group relative rounded-2xl px-3 py-2.5"
             >
               <div className="flex items-start gap-3">
                 <span
@@ -98,7 +98,7 @@ function PlaytimeBreakdown({ summary }: SummaryProps) {
                 />
                 <div className="min-w-0 flex-1">
                   <div className="flex items-baseline justify-between gap-3">
-                    <span className="text-[13px] font-medium text-slate-200">
+                    <span className="text-[13px] font-medium text-slate-100">
                       {bucket.label}
                     </span>
                     <span className="text-[13px] font-medium text-white">
@@ -106,21 +106,21 @@ function PlaytimeBreakdown({ summary }: SummaryProps) {
                     </span>
                   </div>
                   <div className="mt-0.5 flex items-center justify-between gap-3">
-                    <p className="text-[10px] uppercase tracking-[0.16em] text-slate-500">
-                      {bucket.legend} · {bucket.count} games
+                    <p className="text-[10px] uppercase tracking-[0.16em] text-slate-400">
+                      {bucket.legend} / {bucket.count} games
                     </p>
                     {bucket.label !== "Unplayed" && bucket.topGames.length > 0 ? (
-                      <span className="text-[13px] font-medium leading-none text-slate-500 transition group-hover:translate-x-0.5 group-hover:text-[#66c0f4]">
+                      <span className="text-[13px] font-medium leading-none text-slate-400 transition group-hover:translate-x-0.5 group-hover:text-[#9bdcff]">
                         &gt;
                       </span>
                     ) : null}
                   </div>
                   {bucket.label !== "Unplayed" && bucket.topGames.length > 0 ? (
-                    <div className="pointer-events-none absolute left-3 right-3 top-full z-10 mt-2 rounded-xl border border-[#2a3648] bg-[#0b1220]/95 p-3 opacity-0 shadow-xl shadow-black/40 transition duration-150 group-hover:translate-y-1 group-hover:opacity-100">
-                      <p className="text-[11px] uppercase tracking-[0.18em] text-slate-500">
+                    <div className="glass-popover pointer-events-none absolute left-3 right-3 top-full z-10 mt-2 rounded-2xl p-3 opacity-0 transition duration-150 group-hover:translate-y-1 group-hover:opacity-100">
+                      <p className="text-[11px] uppercase tracking-[0.18em] text-slate-400">
                         Top 5 in {bucket.label}
                       </p>
-                      <ul className="mt-2 space-y-1.5 text-xs text-slate-300">
+                      <ul className="mt-2 space-y-1.5 text-xs text-slate-200">
                         {bucket.topGames.map((game) => (
                           <li
                             key={game.appid}
@@ -129,7 +129,7 @@ function PlaytimeBreakdown({ summary }: SummaryProps) {
                             <span className="min-w-0 flex-1 truncate">
                               {game.name}
                             </span>
-                            <span className="shrink-0 text-slate-400">
+                            <span className="shrink-0 text-slate-300">
                               {formatPlaytime(game.playtime_forever)}
                             </span>
                           </li>
@@ -149,13 +149,13 @@ function PlaytimeBreakdown({ summary }: SummaryProps) {
 
 function RecentActivity({ summary }: SummaryProps) {
   return (
-    <section className="rounded-2xl border border-[#1f2937] bg-[#121a2b]/85 p-5 shadow-xl shadow-black/30">
+    <section className="glass-card rounded-2xl p-5">
       <div className="mb-5 flex items-center justify-between">
         <div>
           <h3 className="text-[15px] font-semibold text-white">Recent Activity</h3>
-          <p className="mt-0.5 text-[12px] text-slate-500">Last 2 weeks</p>
+          <p className="mt-0.5 text-[12px] text-slate-400">Last 2 weeks</p>
         </div>
-        <span className="text-xs text-[#66c0f4]">Steam sync</span>
+        <span className="text-xs text-[#9bdcff]">Steam sync</span>
       </div>
 
       {summary.recentGames.length > 0 ? (
@@ -163,32 +163,34 @@ function RecentActivity({ summary }: SummaryProps) {
           {summary.recentGames.slice(0, 5).map((game) => (
             <div
               key={game.appid}
-              className="flex items-center gap-3 rounded-xl px-1 py-2 transition hover:bg-white/[0.03]"
+              className="rounded-2xl px-1 py-2 transition hover:bg-white/[0.05]"
             >
-              <Image
-                src={getSteamCapsuleImageUrl(game.appid)}
-                alt={`${game.name} capsule art`}
-                width={72}
-                height={27}
-                className="h-[34px] w-[72px] rounded-md object-cover ring-1 ring-[#1f2937]"
-              />
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-medium text-white">{game.name}</p>
-                <p className="text-xs text-slate-500">
-                  {formatPlaytime(game.playtime_2weeks)} in the last 2 weeks
-                </p>
-              </div>
-              <div className="text-right">
-                <p className="text-xs text-slate-400">
-                  {formatPlaytime(game.playtime_forever)}
-                </p>
-                <p className="text-[11px] text-emerald-400">active</p>
+              <div className="flex items-center gap-3">
+                <Image
+                  src={getSteamCapsuleImageUrl(game.appid)}
+                  alt={`${game.name} capsule art`}
+                  width={72}
+                  height={27}
+                  className="h-[34px] w-[72px] rounded-md object-cover ring-1 ring-white/10"
+                />
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium text-white">{game.name}</p>
+                  <p className="text-xs text-slate-400">
+                    {formatPlaytime(game.playtime_2weeks)} in the last 2 weeks
+                  </p>
+                </div>
+                <div className="text-right">
+                  <p className="text-xs text-slate-300">
+                    {formatPlaytime(game.playtime_forever)}
+                  </p>
+                  <p className="text-[11px] text-emerald-300">active</p>
+                </div>
               </div>
             </div>
           ))}
         </div>
       ) : (
-        <p className="text-sm leading-7 text-slate-400">
+        <p className="text-sm leading-7 text-slate-300">
           Steam did not return any recent activity for this profile. That can
           happen if the user has not played recently or if activity details are
           private.
@@ -204,15 +206,15 @@ function BacklogTable({ summary }: SummaryProps) {
   );
 
   return (
-    <section className="rounded-2xl border border-[#1f2937] bg-[#121a2b]/85 p-5 shadow-xl shadow-black/30">
+    <section className="glass-card rounded-2xl p-5">
       <div className="mb-5 flex items-center justify-between">
         <div>
           <h3 className="text-[15px] font-semibold text-white">Backlog Killer</h3>
-          <p className="mt-0.5 text-[12px] text-slate-500">
+          <p className="mt-0.5 text-[12px] text-slate-400">
             Unplayed games waiting
           </p>
         </div>
-        <span className="rounded-full bg-amber-500/10 px-2 py-1 text-[11px] text-amber-300 ring-1 ring-inset ring-amber-500/20">
+        <span className="rounded-full bg-amber-300/12 px-2 py-1 text-[11px] text-amber-100 ring-1 ring-inset ring-amber-200/15">
           {backlogGames.length} unplayed
         </span>
       </div>
@@ -221,16 +223,16 @@ function BacklogTable({ summary }: SummaryProps) {
         <div className="overflow-x-auto">
           <table className="w-full min-w-[520px] text-left text-sm">
             <thead>
-              <tr className="border-b border-[#1f2937] text-[11px] uppercase tracking-[0.18em] text-slate-500">
+              <tr className="border-b border-white/8 text-[11px] uppercase tracking-[0.18em] text-slate-400">
                 <th className="pb-3 font-medium">Game</th>
                 <th className="pb-3 font-medium text-right">App ID</th>
                 <th className="pb-3 font-medium text-right">Status</th>
                 <th className="pb-3 font-medium text-right">Action</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#1f2937]/60">
+            <tbody className="divide-y divide-white/8">
               {backlogGames.slice(0, 5).map((game, index) => (
-                <tr key={game.appid} className="hover:bg-white/[0.02]">
+                <tr key={game.appid} className="hover:bg-white/[0.03]">
                   <td className="py-3 pr-3">
                     <div className="flex items-center gap-3">
                       <Image
@@ -238,19 +240,19 @@ function BacklogTable({ summary }: SummaryProps) {
                         alt={`${game.name} capsule art`}
                         width={56}
                         height={21}
-                        className="h-[26px] w-14 rounded object-cover ring-1 ring-[#1f2937]"
+                        className="h-[26px] w-14 rounded object-cover ring-1 ring-white/10"
                       />
                       <span className="font-medium text-white">{game.name}</span>
                     </div>
                   </td>
-                  <td className="py-3 text-right text-slate-400">{game.appid}</td>
+                  <td className="py-3 text-right text-slate-300">{game.appid}</td>
                   <td className="py-3 text-right">
-                    <span className="rounded-full bg-slate-800 px-2 py-1 text-[11px] text-slate-300 ring-1 ring-inset ring-[#334155]">
+                    <span className="glass-input rounded-full px-2 py-1 text-[11px] text-slate-200">
                       Unplayed
                     </span>
                   </td>
                   <td className="py-3 text-right">
-                    <button className="rounded-lg bg-[#66c0f4]/10 px-3 py-1.5 text-[12px] font-medium text-[#66c0f4] transition hover:bg-[#66c0f4]/20">
+                    <button className="glass-input rounded-xl px-3 py-1.5 text-[12px] font-medium text-[#9bdcff] transition hover:border-white/18 hover:text-white">
                       {index === 0 ? "Play next" : "Queue"}
                     </button>
                   </td>
@@ -260,7 +262,7 @@ function BacklogTable({ summary }: SummaryProps) {
           </table>
         </div>
       ) : (
-        <p className="text-sm leading-7 text-slate-400">
+        <p className="text-sm leading-7 text-slate-300">
           No backlog candidates here. Every visible game in this library already
           has at least some recorded playtime.
         </p>
@@ -274,7 +276,7 @@ export function ProfileDashboard({ summary, tagBreakdown }: ProfileDashboardProp
 
   return (
     <div className="space-y-6">
-      <section className="rounded-2xl border border-[#1f2937] bg-[#121a2b]/85 p-5 shadow-xl shadow-black/30">
+      <section className="glass-card rounded-2xl p-5">
         <div className="flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
           <div className="flex min-w-0 items-center gap-4">
             <div className="shrink-0">
@@ -283,59 +285,59 @@ export function ProfileDashboard({ summary, tagBreakdown }: ProfileDashboardProp
                 alt={`${summary.player.personaname} avatar`}
                 width={80}
                 height={80}
-                className="h-20 w-20 rounded-2xl ring-1 ring-[#1f2937]"
+                className="h-20 w-20 rounded-2xl ring-1 ring-white/15"
               />
             </div>
-          <div className="min-w-0">
-            <div className="flex flex-wrap items-center gap-2">
-              <h2 className="text-3xl font-semibold tracking-tight text-white">
-                {summary.player.personaname}
-              </h2>
-            </div>
-            <p className="mt-1 text-sm text-slate-400">
-              {getPersonaStatus(summary.player.personastate)} / Joined{" "}
-              {formatUnixDate(summary.player.timecreated)} /{" "}
-              {summary.player.loccountrycode ?? "Unknown region"}
-            </p>
-            <div className="mt-2 flex flex-wrap items-center gap-2">
-              <span className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-xs text-slate-300">
-                Steam ID:{" "}
-                <span className="font-mono text-[11px]">
-                  {summary.player.steamid}
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-2">
+                <h2 className="text-3xl font-semibold tracking-tight text-white">
+                  {summary.player.personaname}
+                </h2>
+              </div>
+              <p className="mt-1 text-sm text-slate-300">
+                {getPersonaStatus(summary.player.personastate)} / Joined{" "}
+                {formatUnixDate(summary.player.timecreated)} /{" "}
+                {summary.player.loccountrycode ?? "Unknown region"}
+              </p>
+              <div className="mt-2 flex flex-wrap items-center gap-2">
+                <span className="glass-input rounded-full px-3 py-1 text-xs text-slate-200">
+                  Steam ID:{" "}
+                  <span className="font-mono text-[11px]">
+                    {summary.player.steamid}
+                  </span>
                 </span>
-              </span>
-              <a
-                href={summary.player.profileurl}
-                target="_blank"
-                rel="noreferrer"
-                aria-label="Open Steam profile"
-                className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-[#66c0f4]/25 bg-[#66c0f4]/10 text-[#66c0f4] transition hover:bg-[#66c0f4]/20 hover:text-[#8bd3ff]"
-              >
-                <svg
-                  aria-hidden="true"
-                  viewBox="0 0 16 16"
-                  className="h-3 w-3"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
+                <a
+                  href={summary.player.profileurl}
+                  target="_blank"
+                  rel="noreferrer"
+                  aria-label="Open Steam profile"
+                  className="glass-input inline-flex h-7 w-7 items-center justify-center rounded-full text-[#9bdcff] transition hover:border-white/18 hover:text-white"
                 >
-                  <path
-                    d="M6 4H12V10"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                  <path
-                    d="M11.5 4.5L4 12"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </a>
+                  <svg
+                    aria-hidden="true"
+                    viewBox="0 0 16 16"
+                    className="h-3 w-3"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M6 4H12V10"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <path
+                      d="M11.5 4.5L4 12"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </a>
+              </div>
             </div>
-          </div>
           </div>
 
           <div className="flex flex-wrap gap-2 xl:justify-end">
@@ -343,25 +345,25 @@ export function ProfileDashboard({ summary, tagBreakdown }: ProfileDashboardProp
               label="Total Games"
               value={metrics.totalGames.toLocaleString()}
               hint={`+${summary.recentGames.length} active`}
-              accent="bg-emerald-500/10 text-emerald-400 ring-emerald-500/20"
+              accent="bg-emerald-400/14 text-emerald-100 ring-emerald-200/18"
             />
             <StatPill
               label="Hours Played"
               value={formatHours(metrics.totalMinutes)}
               hint={`+${formatHours(metrics.recentlyPlayedMinutes)} hrs`}
-              accent="bg-emerald-500/10 text-emerald-400 ring-emerald-500/20"
+              accent="bg-sky-300/14 text-sky-100 ring-sky-100/18"
             />
             <StatPill
               label="Avg Hrs/Game"
               value={metrics.averageHoursPerPlayedGame.toFixed(1)}
               hint={`${metrics.playedGames} played`}
-              accent="bg-sky-500/10 text-sky-300 ring-sky-500/20"
+              accent="bg-indigo-300/14 text-indigo-100 ring-indigo-100/18"
             />
             <StatPill
               label="Completion"
               value={formatPercent(metrics.completionRate)}
               hint={`${metrics.unplayedGames} backlog`}
-              accent="bg-amber-500/10 text-amber-300 ring-amber-500/20"
+              accent="bg-amber-300/14 text-amber-100 ring-amber-100/18"
             />
           </div>
         </div>

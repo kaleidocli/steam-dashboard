@@ -51,7 +51,7 @@ export function SteamSearchForm({
           Search by Steam ID64 or custom profile name
         </label>
         <svg
-          className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500"
+          className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
@@ -76,13 +76,13 @@ export function SteamSearchForm({
               ? "Search Steam ID or vanity..."
               : "Enter a Steam ID64 or custom profile name"
           }
-          className={`w-full rounded-xl border border-[#1f2937] bg-[#121a2b]/85 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-[#66c0f4]/50 focus:ring-2 focus:ring-[#66c0f4]/20 ${
+          className={`glass-input w-full rounded-2xl text-sm text-white outline-none transition placeholder:text-slate-400 focus:border-[#9bdcff]/50 focus:ring-2 focus:ring-[#9bdcff]/20 ${
             compact ? "h-11 pl-11 pr-24" : "h-12 pl-11 pr-28"
           }`}
         />
         <button
           type="submit"
-          className={`absolute right-1.5 top-1/2 -translate-y-1/2 rounded-lg bg-[#66c0f4] font-semibold text-[#08111f] transition hover:bg-[#8bd3ff] ${
+          className={`absolute right-1.5 top-1/2 -translate-y-1/2 rounded-xl bg-[linear-gradient(135deg,#d9f3ff,#91d7ff)] font-semibold text-[#08111f] shadow-[0_8px_20px_rgba(145,215,255,0.26)] transition hover:brightness-105 ${
             compact ? "px-3 py-2 text-xs" : "px-4 py-2.5 text-sm"
           }`}
         >
@@ -90,7 +90,7 @@ export function SteamSearchForm({
         </button>
       </div>
       {!compact ? (
-        <p className="mt-3 min-h-6 text-sm text-slate-400" aria-live="polite">
+        <p className="mt-3 min-h-6 text-sm text-slate-300" aria-live="polite">
           {error || "Search with a Steam ID64 or a custom profile name like gaben."}
         </p>
       ) : error ? (

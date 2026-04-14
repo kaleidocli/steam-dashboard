@@ -79,11 +79,11 @@ export function TopHoursChart({ summary, tagBreakdown }: TopHoursChartProps) {
     : "Lifetime playtime across all owned games";
 
   return (
-    <section className="rounded-2xl border border-[#1f2937] bg-[#121a2b]/85 p-5 shadow-xl shadow-black/30">
+    <section className="glass-card rounded-2xl p-5">
       <div className="mb-5 flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
         <div>
           <h3 className="text-[15px] font-semibold text-white">Top 5 by Hours</h3>
-          <p className="mt-0.5 text-[12px] text-slate-500">{helperText}</p>
+          <p className="mt-0.5 text-[12px] text-slate-400">{helperText}</p>
         </div>
 
         <div className="w-full max-w-sm">
@@ -96,13 +96,13 @@ export function TopHoursChart({ summary, tagBreakdown }: TopHoursChartProps) {
                 searchDisabled ? "No tags available for this library" : "Filter by a SteamSpy tag"
               }
               disabled={searchDisabled || Boolean(selectedTag)}
-              className="w-full rounded-xl border border-[#1f2937] bg-[#0b1220]/80 px-3 py-2 text-sm text-white outline-none transition placeholder:text-slate-500 disabled:cursor-not-allowed disabled:opacity-60 focus:border-[#66c0f4]/60"
+              className="glass-input w-full rounded-2xl px-3 py-2 text-sm text-white outline-none transition placeholder:text-slate-400 disabled:cursor-not-allowed disabled:opacity-60 focus:border-[#9bdcff]/60"
             />
             {selectedTag ? (
               <button
                 type="button"
                 onClick={handleClearTag}
-                className="rounded-xl border border-[#334155] bg-[#111827] px-3 py-2 text-[12px] font-semibold text-slate-300 transition hover:border-[#475569] hover:text-white"
+                className="glass-input rounded-2xl px-3 py-2 text-[12px] font-semibold text-slate-200 transition hover:border-white/18 hover:text-white"
               >
                 Clear
               </button>
@@ -110,14 +110,14 @@ export function TopHoursChart({ summary, tagBreakdown }: TopHoursChartProps) {
           </div>
 
           {inputValue.trim() && !selectedTag ? (
-            <div className="mt-2 rounded-xl border border-[#1f2937] bg-[#0b1220]/95 p-1 shadow-lg shadow-black/30">
+            <div className="glass-popover mt-2 rounded-2xl p-1">
               {recommendations.length > 0 ? (
                 recommendations.map((recommendation) => (
                   <button
                     key={recommendation.tag}
                     type="button"
                     onClick={() => handleSelectTag(recommendation.tag)}
-                    className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm text-slate-300 transition hover:bg-white/[0.04] hover:text-white"
+                    className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-sm text-slate-300 transition hover:bg-white/[0.06] hover:text-white"
                   >
                     <span>{recommendation.tag}</span>
                     <span className="text-[10px] uppercase tracking-[0.18em] text-slate-500">
@@ -141,9 +141,9 @@ export function TopHoursChart({ summary, tagBreakdown }: TopHoursChartProps) {
           {filteredGames.map((game) => (
             <article
               key={game.appid}
-              className="group overflow-hidden rounded-xl border border-[#1f2937]/80 bg-[#0b1220]/55 transition hover:border-[#2a3648]"
+              className="glass-card-soft group overflow-hidden rounded-2xl transition hover:border-white/16"
             >
-              <div className="relative aspect-[3/4] overflow-hidden bg-[#0b1220]">
+              <div className="relative aspect-[3/4] overflow-hidden bg-[rgba(6,12,22,0.35)]">
                 <Image
                   src={getSteamCapsuleImageUrl(game.appid).replace(
                     "capsule_184x69.jpg",
@@ -154,13 +154,13 @@ export function TopHoursChart({ summary, tagBreakdown }: TopHoursChartProps) {
                   sizes="(max-width: 640px) 45vw, (max-width: 1280px) 28vw, 16vw"
                   className="object-cover transition duration-300 group-hover:scale-[1.03]"
                 />
-                <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[#08111f] via-[#08111f]/65 to-transparent" />
+                <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[#09111d] via-[#09111d]/58 to-transparent" />
               </div>
               <div className="space-y-1 px-3 py-3">
                 <p className="text-sm font-medium leading-5 text-white">
                   {game.name}
                 </p>
-                <p className="font-medium text-[#66c0f4]">
+                <p className="font-medium text-[#9bdcff]">
                   {formatPlaytime(game.playtime_forever)}
                 </p>
               </div>
@@ -168,7 +168,7 @@ export function TopHoursChart({ summary, tagBreakdown }: TopHoursChartProps) {
           ))}
         </div>
       ) : (
-        <div className="rounded-xl border border-dashed border-[#2a3648] bg-[#0b1220]/45 px-4 py-6 text-sm text-slate-400">
+        <div className="glass-card-soft rounded-2xl border-dashed px-4 py-6 text-sm text-slate-300">
           No played games matched the selected tag.
         </div>
       )}

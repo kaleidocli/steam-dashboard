@@ -49,19 +49,19 @@ export function GameTagBreakdown({ tagBreakdown }: GameTagBreakdownProps) {
 
   if (!tagBreakdown || tagBreakdown.tags.length === 0) {
     return (
-      <section className="rounded-2xl border border-[#1f2937] bg-[#121a2b]/85 p-5 shadow-xl shadow-black/30">
+      <section className="glass-card rounded-2xl p-5">
         <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <h3 className="text-[15px] font-semibold text-white">All Tags</h3>
-          <div className="inline-flex rounded-xl border border-[#1f2937] bg-[#0b1220]/80 p-1">
+          <div className="glass-input inline-flex rounded-2xl p-1">
             {TAG_METRIC_OPTIONS.map((option) => (
               <button
                 key={option.value}
                 type="button"
                 onClick={() => setMetric(option.value)}
-                className={`rounded-lg px-3 py-1.5 text-[12px] font-medium transition ${
+                className={`rounded-xl px-3 py-1.5 text-[12px] font-medium transition ${
                   metric === option.value
-                    ? "bg-[#66c0f4] text-[#08111f]"
-                    : "text-slate-400 hover:text-white"
+                    ? "bg-[linear-gradient(135deg,#d9f3ff,#91d7ff)] text-[#08111f]"
+                    : "text-slate-300 hover:text-white"
                 }`}
               >
                 {option.label}
@@ -70,9 +70,9 @@ export function GameTagBreakdown({ tagBreakdown }: GameTagBreakdownProps) {
           </div>
         </div>
 
-        <p className="text-sm text-slate-400">
+        <p className="text-sm text-slate-300">
           No tag data available yet. SteamSpy tags are fetched from the
-          API&apos;s <span className="font-medium text-slate-300">tags</span>{" "}
+          API&apos;s <span className="font-medium text-slate-100">tags</span>{" "}
           field, not genre.
         </p>
       </section>
@@ -93,27 +93,27 @@ export function GameTagBreakdown({ tagBreakdown }: GameTagBreakdownProps) {
         }`;
 
   return (
-    <section className="rounded-2xl border border-[#1f2937] bg-[#121a2b]/85 p-5 shadow-xl shadow-black/30">
+    <section className="glass-card rounded-2xl p-5">
       <div className="mb-5 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <div>
           <h3 className="text-[15px] font-semibold text-white">All Tags</h3>
-          <p className="mt-0.5 text-[12px] text-slate-500">
+          <p className="mt-0.5 text-[12px] text-slate-400">
             Source: SteamSpy tags field, with hours weighted by tag score
           </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          <span className="rounded-full border border-[#1f2937] bg-[#0b1220] px-2 py-1 text-[11px] text-slate-400">
+          <span className="glass-input rounded-full px-2 py-1 text-[11px] text-slate-300">
             {metricBadge}
           </span>
           <button
             type="button"
             aria-pressed={includeUnplayed}
             onClick={() => setIncludeUnplayed((current) => !current)}
-            className={`rounded-xl border px-3.5 py-2 text-[12px] font-semibold tracking-[0.02em] transition ${
+            className={`rounded-2xl border px-3.5 py-2 text-[12px] font-semibold tracking-[0.02em] transition ${
               includeUnplayed
-                ? "border-[#66c0f4]/60 bg-[#66c0f4]/18 text-white shadow-[0_0_0_1px_rgba(102,192,244,0.12)]"
-                : "border-[#334155] bg-[#111827] text-slate-300 hover:border-[#475569] hover:text-white"
+                ? "border-[#b9e9ff]/35 bg-[#b9e9ff]/16 text-white shadow-[0_0_0_1px_rgba(185,233,255,0.1)]"
+                : "glass-input text-slate-300 hover:border-white/18 hover:text-white"
             }`}
           >
             Include Unplayed {includeUnplayed ? "ON" : "OFF"}
@@ -123,21 +123,22 @@ export function GameTagBreakdown({ tagBreakdown }: GameTagBreakdownProps) {
               type="button"
               aria-pressed={includeGenericTags}
               onClick={() => setIncludeGenericTags((current) => !current)}
-              className={`rounded-xl border px-3.5 py-2 text-[12px] font-semibold tracking-[0.02em] transition ${
+              className={`rounded-2xl border px-3.5 py-2 text-[12px] font-semibold tracking-[0.02em] transition ${
                 includeGenericTags
-                  ? "border-emerald-400/50 bg-emerald-400/15 text-white shadow-[0_0_0_1px_rgba(52,211,153,0.12)]"
-                  : "border-[#334155] bg-[#111827] text-slate-300 hover:border-[#475569] hover:text-white"
+                  ? "border-emerald-300/35 bg-emerald-300/16 text-white shadow-[0_0_0_1px_rgba(110,231,183,0.08)]"
+                  : "glass-input text-slate-300 hover:border-white/18 hover:text-white"
               }`}
             >
               Include Generic Tags {includeGenericTags ? "ON" : "OFF"}
             </button>
-            <div className="pointer-events-none absolute right-0 top-full z-20 mt-2 w-80 rounded-2xl border border-[#2a3648] bg-[#0b1220]/97 p-4 opacity-0 shadow-xl shadow-black/40 transition duration-150 group-hover:translate-y-1 group-hover:opacity-100">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-emerald-300">
+            <div className="glass-popover pointer-events-none absolute right-0 top-full z-20 mt-2 w-80 rounded-2xl p-4 opacity-0 transition duration-150 group-hover:translate-y-1 group-hover:opacity-100">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-emerald-200">
                 Generic Tag Filter
               </p>
               <p className="mt-2 text-xs leading-5 text-slate-300">
                 Toggle this to include or remove broad, less-specific tags from
-                the widget calculations, row list, and the <span className="font-medium text-white">Other</span> bucket.
+                the widget calculations, row list, and the{" "}
+                <span className="font-medium text-white">Other</span> bucket.
               </p>
               <p className="mt-3 text-[11px] uppercase tracking-[0.16em] text-slate-500">
                 Generic tags
@@ -147,16 +148,16 @@ export function GameTagBreakdown({ tagBreakdown }: GameTagBreakdownProps) {
               </p>
             </div>
           </div>
-          <div className="inline-flex rounded-xl border border-[#1f2937] bg-[#0b1220]/80 p-1">
+          <div className="glass-input inline-flex rounded-2xl p-1">
             {TAG_METRIC_OPTIONS.map((option) => (
               <button
                 key={option.value}
                 type="button"
                 onClick={() => setMetric(option.value)}
-                className={`rounded-lg px-3 py-1.5 text-[12px] font-medium transition ${
+                className={`rounded-xl px-3 py-1.5 text-[12px] font-medium transition ${
                   metric === option.value
-                    ? "bg-[#66c0f4] text-[#08111f]"
-                    : "text-slate-400 hover:text-white"
+                    ? "bg-[linear-gradient(135deg,#d9f3ff,#91d7ff)] text-[#08111f]"
+                    : "text-slate-300 hover:text-white"
                 }`}
               >
                 {option.label}
@@ -173,7 +174,7 @@ export function GameTagBreakdown({ tagBreakdown }: GameTagBreakdownProps) {
               key={`${metric}-${includeUnplayed ? "all" : "played"}-${
                 includeGenericTags ? "generic" : "specific"
               }-${bucket.label}`}
-              className="rounded-xl border border-[#1f2937]/80 bg-[#0b1220]/55 px-3 py-2.5"
+              className="glass-card-soft rounded-2xl px-3 py-2.5"
             >
               <div className="flex items-center gap-3">
                 <div className="flex min-w-0 items-center gap-2 sm:w-[220px] sm:min-w-[220px]">
@@ -181,13 +182,13 @@ export function GameTagBreakdown({ tagBreakdown }: GameTagBreakdownProps) {
                     className="h-2.5 w-2.5 rounded-full"
                     style={{ backgroundColor: bucket.color }}
                   />
-                  <span className="truncate text-[13px] font-medium text-slate-200">
+                  <span className="truncate text-[13px] font-medium text-slate-100">
                     {bucket.label}
                   </span>
                 </div>
 
                 <div className="hidden min-w-[140px] flex-1 sm:block">
-                  <div className="h-2.5 overflow-hidden rounded-full bg-[#111827] ring-1 ring-inset ring-[#1f2937]">
+                  <div className="h-2.5 overflow-hidden rounded-full bg-white/8 ring-1 ring-inset ring-white/8">
                     <div
                       className="h-full rounded-full transition-[width]"
                       style={{
@@ -198,8 +199,8 @@ export function GameTagBreakdown({ tagBreakdown }: GameTagBreakdownProps) {
                   </div>
                 </div>
 
-                <span className="shrink-0 text-[10px] uppercase tracking-[0.16em] text-slate-500">
-                  {Math.round(bucket.titleCount).toLocaleString()} games ·{" "}
+                <span className="shrink-0 text-[10px] uppercase tracking-[0.16em] text-slate-400">
+                  {Math.round(bucket.titleCount).toLocaleString()} games /{" "}
                   {formatHours(bucket.totalMinutes)} hrs
                 </span>
 
@@ -213,7 +214,7 @@ export function GameTagBreakdown({ tagBreakdown }: GameTagBreakdownProps) {
           ))}
         </div>
       ) : (
-        <p className="text-sm text-slate-400">
+        <p className="text-sm text-slate-300">
           No tags match the current filters.
         </p>
       )}

@@ -5,7 +5,7 @@ type ErrorStateProps = {
 
 export function ErrorState({ message, requestedUser }: ErrorStateProps) {
   return (
-    <section className="rounded-3xl border border-rose-500/20 bg-rose-500/10 p-8 text-rose-50 shadow-xl shadow-black/20">
+    <section className="rounded-3xl border border-rose-200/18 bg-[rgba(90,32,47,0.34)] p-8 text-rose-50 shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_18px_40px_rgba(24,8,14,0.3)] backdrop-blur-[22px]">
       <p className="text-sm font-semibold uppercase tracking-[0.35em] text-rose-200">
         Lookup failed
       </p>
