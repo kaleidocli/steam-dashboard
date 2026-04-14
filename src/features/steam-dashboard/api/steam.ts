@@ -1,5 +1,40 @@
 const STEAM_API_BASE_URL = "https://api.steampowered.com";
 const STEAM_ID64_PATTERN = /^\d{17}$/;
+const DEFAULT_STEAM_API_CACHE_TTL_SECONDS = 300;
+const MAX_STEAM_API_CACHE_TTL_SECONDS = 86400;
+const MAX_STEAM_API_CACHE_ENTRIES = 500;
+const steamApiResponseCache = new Map<
+  string,
+  { expiresAtMs: number; payload: unknown }
+>();
+
+function getSteamApiCacheTtlSeconds() {
+  const configuredTtl = Number(process.env.STEAM_API_CACHE_TTL_SECONDS);
+
+  if (!Number.isFinite(configuredTtl) || configuredTtl <= 0) {
+    return DEFAULT_STEAM_API_CACHE_TTL_SECONDS;
+  }
+
+  return Math.min(Math.floor(configuredTtl), MAX_STEAM_API_CACHE_TTL_SECONDS);
+}
+
+function shouldLogSteamApiCacheDebug() {
+  return process.env.STEAM_API_CACHE_DEBUG === "1";
+}
+
+function getSteamApiCacheKey(path: string, params: Record<string, string>) {
+  const sortedParams = Object.entries(params).sort(([a], [b]) =>
+    a.localeCompare(b),
+  );
+  return `${path}?${JSON.stringify(sortedParams)}`;
+}
+
+function pruneOldestSteamApiCacheEntry() {
+  const oldestKey = steamApiResponseCache.keys().next().value;
+  if (oldestKey) {
+    steamApiResponseCache.delete(oldestKey);
+  }
+}
 
 export class SteamLookupError extends Error {
   statusCode: number;
@@ -104,12 +139,36 @@ async function fetchSteamJson<T>(
   params: Record<string, string>,
 ): Promise<T> {
   const apiKey = getSteamApiKey();
+  const cacheTtlSeconds = getSteamApiCacheTtlSeconds();
+  const cacheKey = getSteamApiCacheKey(path, params);
+  const now = Date.now();
+  const cachedEntry = steamApiResponseCache.get(cacheKey);
+
+  if (cachedEntry && cachedEntry.expiresAtMs > now) {
+    if (shouldLogSteamApiCacheDebug()) {
+      console.info(
+        `[steam-cache] path=${path} ttl=${cacheTtlSeconds}s cache=hit layer=memory duration=0ms`,
+      );
+    }
+    return cachedEntry.payload as T;
+  }
+
+  if (cachedEntry) {
+    steamApiResponseCache.delete(cacheKey);
+  }
+
   const searchParams = new URLSearchParams({
     key: apiKey,
     ...params,
   });
+  const startedAt = Date.now();
 
-  const response = await fetch(`${STEAM_API_BASE_URL}${path}?${searchParams}`);
+  const response = await fetch(`${STEAM_API_BASE_URL}${path}?${searchParams}`, {
+    next: {
+      revalidate: cacheTtlSeconds,
+      tags: ["steam-api", `steam-api:${path}`],
+    },
+  });
 
   if (!response.ok) {
     throw new Error(
@@ -117,7 +176,31 @@ async function fetchSteamJson<T>(
     );
   }
 
-  return (await response.json()) as T;
+  const payload = (await response.json()) as T;
+
+  steamApiResponseCache.set(cacheKey, {
+    expiresAtMs: startedAt + cacheTtlSeconds * 1000,
+    payload,
+  });
+
+  if (steamApiResponseCache.size > MAX_STEAM_API_CACHE_ENTRIES) {
+    pruneOldestSteamApiCacheEntry();
+  }
+
+  if (shouldLogSteamApiCacheDebug()) {
+    const durationMs = Date.now() - startedAt;
+    const ageHeader = response.headers.get("age") ?? "n/a";
+    const nextCacheHeader =
+      response.headers.get("x-nextjs-cache") ??
+      response.headers.get("x-vercel-cache") ??
+      "n/a";
+
+    console.info(
+      `[steam-cache] path=${path} ttl=${cacheTtlSeconds}s cache=miss layer=network duration=${durationMs}ms age=${ageHeader} cacheHeader=${nextCacheHeader}`,
+    );
+  }
+
+  return payload;
 }
 
 export async function getSteamUserSummary(
