@@ -48,6 +48,7 @@ export function ConnectedAccountControls({
   const [inputValue, setInputValue] = useState("");
   const [statusMessage, setStatusMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isConfirmingDisconnect, setIsConfirmingDisconnect] = useState(false);
   const containerRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -59,6 +60,7 @@ export function ConnectedAccountControls({
       const changedState = readConnectedAccountState();
       setState(changedState);
       setInputValue(changedState.connectedAccount?.identifier ?? "");
+      setIsConfirmingDisconnect(false);
     }
 
     function handleOutsideClick(event: MouseEvent) {
@@ -126,6 +128,7 @@ export function ConnectedAccountControls({
       writeConnectedAccountState(nextState);
       setStatusMessage(`Connected to ${payload.player.personaname}.`);
       setIsOpen(false);
+      setIsConfirmingDisconnect(false);
       router.push(
         `${pathname}?${new URLSearchParams({
           user: trimmedValue,
@@ -147,6 +150,7 @@ export function ConnectedAccountControls({
     setInputValue("");
     setStatusMessage("Disconnected from Steam account.");
     setIsOpen(false);
+    setIsConfirmingDisconnect(false);
 
     if (disconnectedSteamId && currentSteamId === disconnectedSteamId) {
       router.replace(pathname);
@@ -170,6 +174,10 @@ export function ConnectedAccountControls({
     Boolean(currentSteamId) &&
     state.connectedAccount?.steamId === currentSteamId;
   const isRail = placement === "rail";
+  const connectedSteamId = state.connectedAccount?.steamId ?? "";
+  const favoriteCount = connectedSteamId
+    ? state.favoritesBySteamId[connectedSteamId]?.length ?? 0
+    : 0;
 
   if ((!state.connectedAccount && hideWhenDisconnected) || (state.connectedAccount && hideWhenConnected)) {
     return null;
@@ -239,45 +247,89 @@ export function ConnectedAccountControls({
         >
           {state.connectedAccount ? (
             <div className="space-y-3">
-              <div className="flex items-center gap-3">
-                {state.connectedAccount.avatar ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={state.connectedAccount.avatar}
-                    alt={`${state.connectedAccount.personaName} avatar`}
-                    className="h-10 w-10 rounded-full ring-1 ring-white/15"
-                  />
-                ) : (
-                  <div className="h-10 w-10 rounded-full bg-white/10" />
-                )}
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium text-white">
-                    {state.connectedAccount.personaName}
+              {isConfirmingDisconnect ? (
+                <>
+                  <div>
+                    <p className="text-sm font-medium text-white">
+                      Disconnect this Steam account?
+                    </p>
+                    <p className="mt-1 text-xs leading-5 text-slate-300">
+                      Disconnecting will remove this connected account from the
+                      browser and wipe your Top 5 favorite games for this Steam
+                      profile.
+                    </p>
+                  </div>
+                  <div className="glass-input rounded-2xl px-3 py-3 text-xs leading-5 text-slate-300">
+                    <p>
+                      Favorites to be removed:{" "}
+                      <span className="font-semibold text-white">
+                        {favoriteCount}
+                      </span>
+                    </p>
+                    <p className="mt-1 text-slate-400">
+                      UI settings and background customization will stay as-is.
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={handleDisconnect}
+                      className="rounded-xl bg-[linear-gradient(135deg,#ffd7d7,#ff9f9f)] px-3 py-2 text-xs font-semibold text-[#301010] transition hover:brightness-105"
+                    >
+                      Confirm disconnect
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setIsConfirmingDisconnect(false)}
+                      className="glass-input rounded-xl px-3 py-2 text-xs font-semibold text-slate-200 transition hover:border-white/18 hover:text-white"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="flex items-center gap-3">
+                    {state.connectedAccount.avatar ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={state.connectedAccount.avatar}
+                        alt={`${state.connectedAccount.personaName} avatar`}
+                        className="h-10 w-10 rounded-full ring-1 ring-white/15"
+                      />
+                    ) : (
+                      <div className="h-10 w-10 rounded-full bg-white/10" />
+                    )}
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-medium text-white">
+                        {state.connectedAccount.personaName}
+                      </p>
+                      <p className="truncate text-[11px] text-slate-400">
+                        {state.connectedAccount.identifier}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={handleMyProfile}
+                      className="rounded-xl bg-[linear-gradient(135deg,#d9f3ff,#91d7ff)] px-3 py-2 text-xs font-semibold text-[#08111f] transition hover:brightness-105"
+                    >
+                      My profile
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setIsConfirmingDisconnect(true)}
+                      className="glass-input rounded-xl px-3 py-2 text-xs font-semibold text-slate-200 transition hover:border-white/18 hover:text-white"
+                    >
+                      Disconnect
+                    </button>
+                  </div>
+                  <p className="text-xs leading-5 text-slate-400">
+                    Your connected account and favorites stay on this browser only.
                   </p>
-                  <p className="truncate text-[11px] text-slate-400">
-                    {state.connectedAccount.identifier}
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={handleMyProfile}
-                  className="rounded-xl bg-[linear-gradient(135deg,#d9f3ff,#91d7ff)] px-3 py-2 text-xs font-semibold text-[#08111f] transition hover:brightness-105"
-                >
-                  My profile
-                </button>
-                <button
-                  type="button"
-                  onClick={handleDisconnect}
-                  className="glass-input rounded-xl px-3 py-2 text-xs font-semibold text-slate-200 transition hover:border-white/18 hover:text-white"
-                >
-                  Disconnect
-                </button>
-              </div>
-              <p className="text-xs leading-5 text-slate-400">
-                Your connected account and favorites stay on this browser only.
-              </p>
+                </>
+              )}
             </div>
           ) : (
             <form className="space-y-3" onSubmit={handleConnect} noValidate>
