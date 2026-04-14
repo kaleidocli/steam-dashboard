@@ -25,7 +25,7 @@ const TAG_METRIC_OPTIONS: Array<{
 
 export function GameTagBreakdown({ tagBreakdown }: GameTagBreakdownProps) {
   const [metric, setMetric] = useState<SteamTagMetric>("titleCount");
-  const [includeUnplayed, setIncludeUnplayed] = useState(false);
+  const [includeUnplayed, setIncludeUnplayed] = useState(true);
 
   if (!tagBreakdown || tagBreakdown.tags.length === 0) {
     return (
@@ -95,13 +95,13 @@ export function GameTagBreakdown({ tagBreakdown }: GameTagBreakdownProps) {
             type="button"
             aria-pressed={includeUnplayed}
             onClick={() => setIncludeUnplayed((current) => !current)}
-            className={`rounded-full border px-3 py-1.5 text-[11px] font-medium transition ${
+            className={`rounded-xl border px-3.5 py-2 text-[12px] font-semibold tracking-[0.02em] transition ${
               includeUnplayed
-                ? "border-[#66c0f4]/40 bg-[#66c0f4]/10 text-[#8bd3ff]"
-                : "border-[#1f2937] bg-[#0b1220] text-slate-400 hover:text-white"
+                ? "border-[#66c0f4]/60 bg-[#66c0f4]/18 text-white shadow-[0_0_0_1px_rgba(102,192,244,0.12)]"
+                : "border-[#334155] bg-[#111827] text-slate-300 hover:border-[#475569] hover:text-white"
             }`}
           >
-            Include Unplayed: {includeUnplayed ? "On" : "Off"}
+            Include Unplayed {includeUnplayed ? "ON" : "OFF"}
           </button>
           <div className="inline-flex rounded-xl border border-[#1f2937] bg-[#0b1220]/80 p-1">
             {TAG_METRIC_OPTIONS.map((option) => (
