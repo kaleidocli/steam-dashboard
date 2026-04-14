@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 type SteamSearchFormProps = {
@@ -17,10 +17,6 @@ export function SteamSearchForm({
   const searchParams = useSearchParams();
   const [value, setValue] = useState(initialValue);
   const [error, setError] = useState("");
-
-  useEffect(() => {
-    setValue(initialValue);
-  }, [initialValue]);
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();

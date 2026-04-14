@@ -86,7 +86,7 @@ export function TopHoursChart({ summary, tagBreakdown }: TopHoursChartProps) {
           <p className="mt-0.5 text-[12px] text-slate-400">{helperText}</p>
         </div>
 
-        <div className="w-full max-w-sm">
+        <div className="relative w-full max-w-sm">
           <div className="flex items-center gap-2">
             <input
               type="text"
@@ -110,7 +110,7 @@ export function TopHoursChart({ summary, tagBreakdown }: TopHoursChartProps) {
           </div>
 
           {inputValue.trim() && !selectedTag ? (
-            <div className="glass-popover mt-2 rounded-2xl p-1">
+            <div className="glass-popover absolute left-0 right-0 top-full z-20 mt-2 rounded-2xl p-1">
               {recommendations.length > 0 ? (
                 recommendations.map((recommendation) => (
                   <button
