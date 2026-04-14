@@ -7,6 +7,7 @@ import {
   type SteamTagBreakdown,
   type SteamUserSummary,
 } from "@/features/steam-dashboard/api/steam";
+import { GameTagBreakdown } from "@/features/steam-dashboard/components/game-tag-breakdown";
 import {
   formatHours,
   formatPercent,
@@ -18,6 +19,7 @@ type ProfileDashboardProps = {
   summary: SteamUserSummary;
   tagBreakdown: SteamTagBreakdown | null;
 };
+
 type SummaryProps = {
   summary: SteamUserSummary;
 };
@@ -163,8 +165,13 @@ function PlaytimeBreakdown({ summary }: SummaryProps) {
                       </p>
                       <ul className="mt-2 space-y-1.5 text-xs text-slate-300">
                         {bucket.topGames.map((game) => (
-                          <li key={game.appid} className="flex items-start justify-between gap-3">
-                            <span className="min-w-0 flex-1 truncate">{game.name}</span>
+                          <li
+                            key={game.appid}
+                            className="flex items-start justify-between gap-3"
+                          >
+                            <span className="min-w-0 flex-1 truncate">
+                              {game.name}
+                            </span>
                             <span className="shrink-0 text-slate-400">
                               {formatPlaytime(game.playtime_forever)}
                             </span>
@@ -179,86 +186,6 @@ function PlaytimeBreakdown({ summary }: SummaryProps) {
           ))}
         </div>
       </div>
-    </section>
-  );
-}
-
-function GameTagBreakdown({ tagBreakdown }: { tagBreakdown: SteamTagBreakdown | null }) {
-  return (
-    <section className="rounded-2xl border border-[#1f2937] bg-[#121a2b]/85 p-5 shadow-xl shadow-black/30">
-      <div className="mb-5 flex items-center justify-between">
-        <h3 className="text-[15px] font-semibold text-white">Top Tags</h3>
-        <span className="rounded-full border border-[#1f2937] bg-[#0b1220] px-2 py-1 text-[11px] text-slate-400">
-          {tagBreakdown?.totalTaggedGames ?? 0} played games
-        </span>
-      </div>
-
-      {tagBreakdown && tagBreakdown.buckets.length > 0 ? (
-        <div className="flex flex-wrap gap-2">
-          {tagBreakdown.buckets.map((bucket) => (
-            <button
-              key={bucket.label}
-              type="button"
-              className="rounded-full border border-[#1f2937] bg-[#0b1220]/75 px-3 py-1.5 text-left transition hover:border-[#2a3648] hover:bg-[#111a2c]"
-            >
-              <span className="flex items-center gap-2">
-                <span
-                  className="h-2 w-2 rounded-full"
-                  style={{ backgroundColor: bucket.color }}
-                />
-                <span className="text-[12px] font-medium text-slate-200">
-                  {bucket.label}
-                </span>
-                <span className="text-[11px] text-slate-400">
-                  {formatPercent(bucket.percentage)}
-                </span>
-              </span>
-            </button>
-          ))}
-        </div>
-      ) : (
-        <p className="text-sm text-slate-400">
-          No tag data available yet. SteamSpy tags are fetched from played games
-          using the API’s <span className="font-medium text-slate-300">tags</span>{" "}
-          field (not genre).
-        </p>
-      )}
-
-      {tagBreakdown && tagBreakdown.buckets.length > 0 ? (
-        <div className="mt-4 space-y-2">
-          <p className="text-[11px] uppercase tracking-[0.16em] text-slate-500">
-            Source: SteamSpy tags field
-          </p>
-          <div className="space-y-2">
-            {tagBreakdown.buckets.map((bucket) => (
-              <div
-                key={`${bucket.label}-summary`}
-                className="rounded-xl border border-[#1f2937]/80 bg-[#0b1220]/55 px-3 py-2.5"
-              >
-                <div className="flex items-start gap-3">
-                  <span
-                    className="mt-1 h-2 w-2 rounded-full"
-                    style={{ backgroundColor: bucket.color }}
-                  />
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-baseline justify-between gap-3">
-                      <span className="text-[13px] font-medium text-slate-200">
-                        {bucket.label}
-                      </span>
-                      <span className="text-[13px] font-medium text-white">
-                        {formatPercent(bucket.percentage)}
-                      </span>
-                    </div>
-                    <p className="mt-0.5 text-[10px] uppercase tracking-[0.16em] text-slate-500">
-                      {bucket.count} games · {formatHours(bucket.totalMinutes)} hrs
-                    </p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      ) : null}
     </section>
   );
 }

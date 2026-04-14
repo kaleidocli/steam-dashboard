@@ -7,9 +7,6 @@ const MAX_STEAM_API_CACHE_ENTRIES = 500;
 const STEAMSPY_CACHE_TTL_SECONDS = 86400;
 const MAX_STEAMSPY_CACHE_ENTRIES = 2000;
 const STEAMSPY_CONCURRENT_REQUESTS = 20;
-const MIN_VISIBLE_TAGS = 7;
-const MAX_VISIBLE_TAGS = 14;
-const MAX_OTHER_PERCENTAGE = 20;
 const steamApiResponseCache = new Map<
   string,
   { expiresAtMs: number; payload: unknown }
@@ -129,19 +126,20 @@ type SteamSpyAppDetailsResponse = {
   tags?: Record<string, number>;
 };
 
-export type SteamTagBucket = {
+export type SteamTagMetric = "titleCount" | "hoursPlayed";
+
+export type SteamTagAggregate = {
   label: string;
-  count: number;
+  titleCount: number;
   totalMinutes: number;
-  percentage: number;
-  color: string;
-  segment: string;
 };
 
 export type SteamTagBreakdown = {
-  buckets: SteamTagBucket[];
-  background: string;
-  totalTaggedGames: number;
+  tags: SteamTagAggregate[];
+  totalPlayedGames: number;
+  totalPlayedMinutes: number;
+  totalTitleCount: number;
+  totalTaggedMinutes: number;
 };
 
 function getSteamApiKey() {
@@ -287,36 +285,15 @@ async function fetchSteamSpyAppDetails(appId: number) {
   return payload;
 }
 
-function getTopTag(tags?: Record<string, number>) {
-  if (!tags) {
-    return null;
-  }
-
-  const entries = Object.entries(tags);
-  if (entries.length === 0) {
-    return null;
-  }
-
-  const [topTag] = entries.sort((left, right) => right[1] - left[1])[0];
-  return topTag;
-}
-
-const TAG_COLORS = [
-  "#f97316",
-  "#f43f5e",
-  "#a855f7",
-  "#6366f1",
-  "#22d3ee",
-  "#14b8a6",
-  "#84cc16",
-  "#eab308",
-];
-
 export async function getSteamTagBreakdown(
   ownedGames: SteamOwnedGame[],
 ): Promise<SteamTagBreakdown> {
   const playedGames = ownedGames.filter((game) => game.playtime_forever > 0);
-  const tagTotals = new Map<string, { count: number; totalMinutes: number }>();
+  const tagTotals = new Map<string, { titleCount: number; totalMinutes: number }>();
+  const totalPlayedMinutes = playedGames.reduce(
+    (total, game) => total + game.playtime_forever,
+    0,
+  );
 
   for (
     let index = 0;
@@ -334,98 +311,53 @@ export async function getSteamTagBreakdown(
           const details = await fetchSteamSpyAppDetails(game.appid);
           return {
             game,
-            topTag: getTopTag(details.tags),
+            tags:
+              details.tags && Object.keys(details.tags).length > 0
+                ? Object.keys(details.tags)
+                : null,
           };
         } catch {
           return {
             game,
-            topTag: null,
+            tags: null,
           };
         }
       }),
     );
 
-    for (const { game, topTag } of batchResults) {
-      const tagLabel = topTag ?? "Unknown";
-      const existing = tagTotals.get(tagLabel);
+    for (const { game, tags } of batchResults) {
+      const tagLabels = tags ?? ["Unknown"];
 
-      if (existing) {
-        existing.count += 1;
-        existing.totalMinutes += game.playtime_forever;
-      } else {
-        tagTotals.set(tagLabel, {
-          count: 1,
-          totalMinutes: game.playtime_forever,
-        });
+      for (const tagLabel of tagLabels) {
+        const existing = tagTotals.get(tagLabel);
+
+        if (existing) {
+          existing.titleCount += 1;
+          existing.totalMinutes += game.playtime_forever;
+        } else {
+          tagTotals.set(tagLabel, {
+            titleCount: 1,
+            totalMinutes: game.playtime_forever,
+          });
+        }
       }
     }
   }
 
-  const sortedTags = [...tagTotals.entries()].sort((left, right) => {
-    if (right[1].count === left[1].count) {
-      return right[1].totalMinutes - left[1].totalMinutes;
-    }
-
-    return right[1].count - left[1].count;
-  });
-  const totalTaggedGames = playedGames.length || 1;
-  let visibleTagCount = Math.min(MIN_VISIBLE_TAGS, sortedTags.length);
-  let remainingTags = sortedTags.slice(visibleTagCount);
-  let otherTotals = remainingTags.reduce(
-    (aggregate, [, current]) => {
-      aggregate.count += current.count;
-      aggregate.totalMinutes += current.totalMinutes;
-      return aggregate;
-    },
-    { count: 0, totalMinutes: 0 },
-  );
-
-  while (
-    remainingTags.length > 0 &&
-    visibleTagCount < Math.min(MAX_VISIBLE_TAGS, sortedTags.length) &&
-    (otherTotals.count / totalTaggedGames) * 100 > MAX_OTHER_PERCENTAGE
-  ) {
-    visibleTagCount += 1;
-    remainingTags = sortedTags.slice(visibleTagCount);
-    otherTotals = remainingTags.reduce(
-      (aggregate, [, current]) => {
-        aggregate.count += current.count;
-        aggregate.totalMinutes += current.totalMinutes;
-        return aggregate;
-      },
-      { count: 0, totalMinutes: 0 },
-    );
-  }
-
-  const visibleTags = sortedTags.slice(0, visibleTagCount);
-  if (remainingTags.length > 0 && otherTotals.count > 0) {
-    visibleTags.push(["Other", otherTotals]);
-  }
-
-  let currentAngle = 0;
-  const buckets = visibleTags.map(([label, value], index) => {
-    const percentage = (value.count / totalTaggedGames) * 100;
-    const start = currentAngle;
-    currentAngle += (value.count / totalTaggedGames) * 360;
-    const color = TAG_COLORS[index % TAG_COLORS.length];
-
-    return {
+  const tags = [...tagTotals.entries()]
+    .map(([label, value]) => ({
       label,
-      count: value.count,
+      titleCount: value.titleCount,
       totalMinutes: value.totalMinutes,
-      percentage,
-      color,
-      segment: `${color} ${start.toFixed(1)}deg ${currentAngle.toFixed(1)}deg`,
-    };
-  });
+    }))
+    .sort((left, right) => left.label.localeCompare(right.label));
 
   return {
-    buckets,
-    background:
-      buckets.length > 0
-        ? `conic-gradient(${buckets.map((bucket) => bucket.segment).join(", ")})`
-        : "conic-gradient(#1f2937 0deg 360deg)",
-    totalTaggedGames: playedGames.length,
+    tags,
+    totalPlayedGames: playedGames.length,
+    totalPlayedMinutes,
+    totalTitleCount: tags.reduce((total, tag) => total + tag.titleCount, 0),
+    totalTaggedMinutes: tags.reduce((total, tag) => total + tag.totalMinutes, 0),
   };
 }
 
