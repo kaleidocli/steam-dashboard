@@ -45,7 +45,7 @@ const GENERIC_TAGS = [
 export function GameTagBreakdown({ tagBreakdown }: GameTagBreakdownProps) {
   const [metric, setMetric] = useState<SteamTagMetric>("titleCount");
   const [includeUnplayed, setIncludeUnplayed] = useState(true);
-  const [includeGenericTags, setIncludeGenericTags] = useState(true);
+  const [includeGenericTags, setIncludeGenericTags] = useState(false);
 
   if (!tagBreakdown || tagBreakdown.tags.length === 0) {
     return (

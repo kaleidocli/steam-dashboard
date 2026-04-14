@@ -53,7 +53,6 @@ function StatPill({ label, value, hint, accent }: StatCardProps) {
 
 function TopHoursChart({ summary }: SummaryProps) {
   const topGames = summary.ownedGames.slice(0, 5);
-  const highestMinutes = topGames[0]?.playtime_forever ?? 1;
 
   return (
     <section className="rounded-2xl border border-[#1f2937] bg-[#121a2b]/85 p-5 shadow-xl shadow-black/30">
@@ -63,29 +62,34 @@ function TopHoursChart({ summary }: SummaryProps) {
           <p className="mt-0.5 text-[12px] text-slate-500">Lifetime playtime</p>
         </div>
       </div>
-      <div className="space-y-4">
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 xl:grid-cols-5">
         {topGames.map((game) => (
-          <div key={game.appid} className="grid gap-2 sm:grid-cols-[1fr_auto] sm:items-center">
-            <div className="min-w-0">
-              <div className="mb-1.5 flex items-center justify-between gap-3 text-sm">
-                <span className="truncate text-slate-300">{game.name}</span>
-                <span className="font-medium text-white">
-                  {formatPlaytime(game.playtime_forever)}
-                </span>
-              </div>
-              <div className="h-6 rounded-full bg-[#0b1220] ring-1 ring-inset ring-[#1f2937]">
-                <div
-                  className="h-full rounded-full bg-gradient-to-r from-[#66c0f4] to-[#3b82f6]"
-                  style={{
-                    width: `${Math.max(
-                      14,
-                      (game.playtime_forever / highestMinutes) * 100,
-                    )}%`,
-                  }}
-                />
-              </div>
+          <article
+            key={game.appid}
+            className="group overflow-hidden rounded-xl border border-[#1f2937]/80 bg-[#0b1220]/55 transition hover:border-[#2a3648]"
+          >
+            <div className="relative aspect-[3/4] overflow-hidden bg-[#0b1220]">
+              <Image
+                src={getSteamCapsuleImageUrl(game.appid).replace(
+                  "capsule_184x69.jpg",
+                  "library_600x900_2x.jpg",
+                )}
+                alt={`${game.name} cover art`}
+                fill
+                sizes="(max-width: 640px) 45vw, (max-width: 1280px) 28vw, 16vw"
+                className="object-cover transition duration-300 group-hover:scale-[1.03]"
+              />
+              <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[#08111f] via-[#08111f]/65 to-transparent" />
             </div>
-          </div>
+            <div className="space-y-1 px-3 py-3">
+              <p className="text-sm font-medium leading-5 text-white">
+                {game.name}
+              </p>
+              <p className="font-medium text-[#66c0f4]">
+                {formatPlaytime(game.playtime_forever)}
+              </p>
+            </div>
+          </article>
         ))}
       </div>
     </section>
