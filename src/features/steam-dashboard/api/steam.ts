@@ -355,11 +355,11 @@ export async function getSteamTagBreakdown(
         const weightedMinutes = game.playtime_forever * tag.weight;
 
         if (existing) {
-          existing.titleCount += tag.weight;
+          existing.titleCount += 1;
           existing.totalMinutes += weightedMinutes;
         } else {
           tagTotals.set(tag.label, {
-            titleCount: tag.weight,
+            titleCount: 1,
             totalMinutes: weightedMinutes,
           });
         }

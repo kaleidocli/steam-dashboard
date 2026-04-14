@@ -20,18 +20,6 @@ const TAG_METRIC_OPTIONS: Array<{
   { label: "Hours Played", value: "hoursPlayed" },
 ];
 
-function formatWeightedTitleCount(value: number) {
-  if (value >= 100) {
-    return Math.round(value).toLocaleString();
-  }
-
-  if (value >= 10) {
-    return value.toFixed(1);
-  }
-
-  return value.toFixed(2);
-}
-
 export function GameTagBreakdown({ tagBreakdown }: GameTagBreakdownProps) {
   const [metric, setMetric] = useState<SteamTagMetric>("titleCount");
 
@@ -79,7 +67,7 @@ export function GameTagBreakdown({ tagBreakdown }: GameTagBreakdownProps) {
         <div>
           <h3 className="text-[15px] font-semibold text-white">All Tags</h3>
           <p className="mt-0.5 text-[12px] text-slate-500">
-            Source: SteamSpy tags field, weighted by tag score
+            Source: SteamSpy tags field, with hours weighted by tag score
           </p>
         </div>
 
@@ -167,7 +155,7 @@ export function GameTagBreakdown({ tagBreakdown }: GameTagBreakdownProps) {
                     {bucket.label}
                   </span>
                   <span className="shrink-0 text-[10px] uppercase tracking-[0.16em] text-slate-500">
-                    {formatWeightedTitleCount(bucket.titleCount)} games ·{" "}
+                    {Math.round(bucket.titleCount).toLocaleString()} games ·{" "}
                     {formatHours(bucket.totalMinutes)} hrs
                   </span>
                   {bucket.label !== "Other" ? (
