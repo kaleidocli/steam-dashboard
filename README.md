@@ -2,7 +2,7 @@
 
 A Steam profile dashboard built with Next.js, React, Tailwind CSS, and Prisma. Enter a Steam ID64 or vanity profile name to load a player overview, library metrics, recent activity, backlog insights, and a tag-based breakdown of the user's game collection.
 
-![Steam Dashboard Screenshot](https://i.imgur.com/2eFzFAJ.png)
+![Steam Dashboard Screenshot](https://i.imgur.com/tn0pTMo.png)
 
 
 ## Overview
