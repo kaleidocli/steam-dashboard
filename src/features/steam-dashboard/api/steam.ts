@@ -285,6 +285,29 @@ async function fetchSteamSpyAppDetails(appId: number) {
   return payload;
 }
 
+function getNormalizedSteamSpyTags(tags?: Record<string, number>) {
+  if (!tags) {
+    return null;
+  }
+
+  const entries = Object.entries(tags).filter(([, score]) => score > 0);
+
+  if (entries.length === 0) {
+    return null;
+  }
+
+  const totalScore = entries.reduce((total, [, score]) => total + score, 0);
+
+  if (totalScore <= 0) {
+    return null;
+  }
+
+  return entries.map(([label, score]) => ({
+    label,
+    weight: score / totalScore,
+  }));
+}
+
 export async function getSteamTagBreakdown(
   ownedGames: SteamOwnedGame[],
 ): Promise<SteamTagBreakdown> {
@@ -311,10 +334,7 @@ export async function getSteamTagBreakdown(
           const details = await fetchSteamSpyAppDetails(game.appid);
           return {
             game,
-            tags:
-              details.tags && Object.keys(details.tags).length > 0
-                ? Object.keys(details.tags)
-                : null,
+            tags: getNormalizedSteamSpyTags(details.tags),
           };
         } catch {
           return {
@@ -326,18 +346,21 @@ export async function getSteamTagBreakdown(
     );
 
     for (const { game, tags } of batchResults) {
-      const tagLabels = tags ?? ["Unknown"];
+      if (!tags) {
+        continue;
+      }
 
-      for (const tagLabel of tagLabels) {
-        const existing = tagTotals.get(tagLabel);
+      for (const tag of tags) {
+        const existing = tagTotals.get(tag.label);
+        const weightedMinutes = game.playtime_forever * tag.weight;
 
         if (existing) {
-          existing.titleCount += 1;
-          existing.totalMinutes += game.playtime_forever;
+          existing.titleCount += tag.weight;
+          existing.totalMinutes += weightedMinutes;
         } else {
-          tagTotals.set(tagLabel, {
-            titleCount: 1,
-            totalMinutes: game.playtime_forever,
+          tagTotals.set(tag.label, {
+            titleCount: tag.weight,
+            totalMinutes: weightedMinutes,
           });
         }
       }

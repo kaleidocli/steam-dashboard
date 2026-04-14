@@ -20,6 +20,18 @@ const TAG_METRIC_OPTIONS: Array<{
   { label: "Hours Played", value: "hoursPlayed" },
 ];
 
+function formatWeightedTitleCount(value: number) {
+  if (value >= 100) {
+    return Math.round(value).toLocaleString();
+  }
+
+  if (value >= 10) {
+    return value.toFixed(1);
+  }
+
+  return value.toFixed(2);
+}
+
 export function GameTagBreakdown({ tagBreakdown }: GameTagBreakdownProps) {
   const [metric, setMetric] = useState<SteamTagMetric>("titleCount");
 
@@ -59,7 +71,7 @@ export function GameTagBreakdown({ tagBreakdown }: GameTagBreakdownProps) {
   const metricBadge =
     metric === "hoursPlayed"
       ? `${formatHours(displayBreakdown.totalMetricValue)} tagged hrs`
-      : `${displayBreakdown.totalPlayedGames} played games`;
+      : `${Math.round(displayBreakdown.totalMetricValue).toLocaleString()} tagged games`;
 
   return (
     <section className="rounded-2xl border border-[#1f2937] bg-[#121a2b]/85 p-5 shadow-xl shadow-black/30">
@@ -67,7 +79,7 @@ export function GameTagBreakdown({ tagBreakdown }: GameTagBreakdownProps) {
         <div>
           <h3 className="text-[15px] font-semibold text-white">All Tags</h3>
           <p className="mt-0.5 text-[12px] text-slate-500">
-            Source: SteamSpy tags field
+            Source: SteamSpy tags field, weighted by tag score
           </p>
         </div>
 
@@ -103,12 +115,12 @@ export function GameTagBreakdown({ tagBreakdown }: GameTagBreakdownProps) {
             <div className="absolute inset-[24px] flex items-center justify-center rounded-full bg-[#121a2b] ring-1 ring-inset ring-[#1f2937]">
               <div className="text-center">
                 <p className="text-[10px] uppercase tracking-[0.22em] text-slate-500">
-                  {metric === "hoursPlayed" ? "Tagged Hours" : "Played Games"}
+                  {metric === "hoursPlayed" ? "Tagged Hours" : "Tagged Games"}
                 </p>
                 <p className="mt-1 text-2xl font-semibold leading-none text-white">
                   {metric === "hoursPlayed"
                     ? formatHours(displayBreakdown.totalMetricValue)
-                    : displayBreakdown.totalPlayedGames.toLocaleString()}
+                    : Math.round(displayBreakdown.totalMetricValue).toLocaleString()}
                 </p>
               </div>
             </div>
@@ -142,26 +154,23 @@ export function GameTagBreakdown({ tagBreakdown }: GameTagBreakdownProps) {
             {displayBreakdown.buckets.map((bucket) => (
               <div
                 key={`${metric}-${bucket.label}`}
-                className="rounded-xl border border-[#1f2937]/80 bg-[#0b1220]/55 px-3 py-2.5"
+                className="rounded-xl border border-[#1f2937]/80 bg-[#0b1220]/55 px-3 py-2"
               >
-                <div className="flex items-start gap-3">
+                <div className="flex items-center gap-3">
                   <span
-                    className="mt-1 h-2 w-2 rounded-full"
+                    className="h-2 w-2 rounded-full"
                     style={{ backgroundColor: bucket.color }}
                   />
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-baseline justify-between gap-3">
-                      <span className="text-[13px] font-medium text-slate-200">
-                        {bucket.label}
-                      </span>
-                      <span className="text-[13px] font-medium text-white">
-                        {formatPercent(bucket.percentage)}
-                      </span>
-                    </div>
-                    <p className="mt-0.5 text-[10px] uppercase tracking-[0.16em] text-slate-500">
-                      {bucket.titleCount} games · {formatHours(bucket.totalMinutes)} hrs
-                    </p>
-                  </div>
+                  <span className="min-w-0 flex-1 truncate text-[13px] font-medium text-slate-200">
+                    {bucket.label}
+                  </span>
+                  <span className="shrink-0 text-[10px] uppercase tracking-[0.16em] text-slate-500">
+                    {formatWeightedTitleCount(bucket.titleCount)} games ·{" "}
+                    {formatHours(bucket.totalMinutes)} hrs
+                  </span>
+                  <span className="shrink-0 text-[13px] font-medium text-white">
+                    {formatPercent(bucket.percentage)}
+                  </span>
                 </div>
               </div>
             ))}
