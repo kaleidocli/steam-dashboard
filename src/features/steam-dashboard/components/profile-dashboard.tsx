@@ -9,6 +9,7 @@ import {
 } from "@/features/steam-dashboard/api/steam";
 import { FavoriteGamesWidget } from "@/features/steam-dashboard/components/favorite-games-widget";
 import { GameTagBreakdown } from "@/features/steam-dashboard/components/game-tag-breakdown";
+import { ProfileExportButton } from "@/features/steam-dashboard/components/profile-export-button";
 import { TopHoursChart } from "@/features/steam-dashboard/components/top-hours-chart";
 import {
   formatHours,
@@ -338,6 +339,7 @@ export function ProfileDashboard({ summary, tagBreakdown }: ProfileDashboardProp
                   </svg>
                 </a>
               </div>
+              <ProfileExportButton summary={summary} tagBreakdown={tagBreakdown} />
             </div>
           </div>
 
