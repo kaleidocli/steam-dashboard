@@ -36,7 +36,11 @@ export function SteamDashboardPage({
       </div>
 
       <Sidebar summary={summary} />
-      <RightSidebar initialValue={requestedUser === "me" ? "" : requestedUser} />
+      <RightSidebar
+        initialValue={requestedUser === "me" ? "" : requestedUser}
+        summary={summary}
+        tagBreakdown={tagBreakdown}
+      />
 
       <div className="min-h-screen w-full lg:px-[248px] lg:pr-[320px]">
         <Topbar

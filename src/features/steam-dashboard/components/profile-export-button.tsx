@@ -679,7 +679,7 @@ function drawPlaytimeBreakdownSection(
     baseline: "middle",
   });
 
-  breakdown.buckets.forEach((bucket, index) => {
+  breakdown.buckets.slice(0, 5).forEach((bucket, index) => {
     const rowY = y + 98 + index * 44;
     const rowX = x + 236;
     context.fillStyle = bucket.color;
@@ -749,7 +749,7 @@ function drawTagsSection(
     false,
   );
 
-  tagDisplay.buckets.slice(0, 8).forEach((bucket, index) => {
+  tagDisplay.buckets.slice(0, 6).forEach((bucket, index) => {
     const rowY = y + 102 + index * 36;
     context.fillStyle = bucket.color;
     context.beginPath();
@@ -959,6 +959,8 @@ async function renderProfileExportImage(
   const rightX = leftX + leftWidth + 24;
   const rightWidth = EXPORT_WIDTH - rightX - 48;
 
+  const topHoursHeight = 236;
+  const playtimeHeight = 308;
   drawPortraitRowSection(
     context,
     appearance,
@@ -967,7 +969,7 @@ async function renderProfileExportImage(
     leftX,
     currentY,
     leftWidth,
-    236,
+    topHoursHeight,
     summary.ownedGames.slice(0, 5),
     exportImages.portraitsByAppId,
     false,
@@ -979,11 +981,11 @@ async function renderProfileExportImage(
     rightX,
     currentY,
     rightWidth,
-    236,
+    playtimeHeight,
   );
 
-  currentY += 256;
-  drawTagsSection(context, tagBreakdown, appearance, leftX, currentY, leftWidth, 292);
+  currentY += Math.max(topHoursHeight, playtimeHeight) + 20;
+  drawTagsSection(context, tagBreakdown, appearance, leftX, currentY, leftWidth, 320);
   drawListSection(
     context,
     appearance,
@@ -992,7 +994,7 @@ async function renderProfileExportImage(
     rightX,
     currentY,
     rightWidth,
-    140,
+    188,
     summary.recentGames.slice(0, 4),
     exportImages.capsulesByAppId,
     (game) => formatPlaytime(game.playtime_forever),
@@ -1135,17 +1137,17 @@ export function ProfileExportButton({
   }
 
   return (
-    <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center">
+    <div className="flex flex-col gap-2">
       <button
         type="button"
         onClick={handleExport}
         disabled={isExporting}
-        className="glass-input inline-flex h-9 items-center justify-center rounded-full px-4 text-sm font-medium text-[#9bdcff] transition hover:border-white/18 hover:text-white disabled:cursor-wait disabled:opacity-70"
+        className="glass-input inline-flex h-10 items-center justify-center rounded-full px-4 text-sm font-medium text-[#9bdcff] transition hover:border-white/18 hover:text-white disabled:cursor-wait disabled:opacity-70"
       >
         {isExporting ? "Exporting..." : "Export Image"}
       </button>
       <p
-        className={`rounded-full border px-3 py-1.5 text-xs ${getStatusClasses(status.tone)}`}
+        className={`rounded-2xl border px-3 py-2 text-xs leading-5 ${getStatusClasses(status.tone)}`}
       >
         {status.message}
       </p>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   BACKGROUND_APPEARANCE_EVENT,
   BACKGROUND_APPEARANCE_STORAGE_KEY,
@@ -123,14 +123,12 @@ async function validateHostedMedia(
 }
 
 export function GradientThemeControl() {
-  const [isOpen, setIsOpen] = useState(false);
   const [appearance, setAppearance] = useState<BackgroundAppearance>(
     DEFAULT_BACKGROUND_APPEARANCE,
   );
   const [draftUrl, setDraftUrl] = useState("");
   const [statusMessage, setStatusMessage] = useState("");
   const [isApplying, setIsApplying] = useState(false);
-  const containerRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     const storedAppearance = parseStoredBackgroundAppearance(
@@ -141,31 +139,6 @@ export function GradientThemeControl() {
     applyGradientColorsToRoot(storedAppearance.gradientColors);
     applyWidgetGradientColorsToRoot(storedAppearance.widgetGradientColors);
     applyWidgetBaseColorToRoot(storedAppearance.widgetBaseColor);
-  }, []);
-
-  useEffect(() => {
-    function handleOutsideClick(event: MouseEvent) {
-      if (
-        containerRef.current &&
-        !containerRef.current.contains(event.target as Node)
-      ) {
-        setIsOpen(false);
-      }
-    }
-
-    function handleEscape(event: KeyboardEvent) {
-      if (event.key === "Escape") {
-        setIsOpen(false);
-      }
-    }
-
-    window.addEventListener("mousedown", handleOutsideClick);
-    window.addEventListener("keydown", handleEscape);
-
-    return () => {
-      window.removeEventListener("mousedown", handleOutsideClick);
-      window.removeEventListener("keydown", handleEscape);
-    };
   }, []);
 
   const previewStyle = useMemo(
@@ -309,228 +282,210 @@ export function GradientThemeControl() {
   }
 
   return (
-    <div ref={containerRef} className="relative block">
-      <button
-        type="button"
-        onClick={() => setIsOpen((current) => !current)}
-        className="glass-input flex items-center gap-2 rounded-full px-3 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-200 transition hover:border-white/20 hover:text-white"
-      >
-        <span
-          className="inline-flex h-2.5 w-2.5 rounded-full shadow-[0_0_14px_rgba(125,211,252,0.45)]"
-          style={previewStyle}
-        />
-        UI Settings
-      </button>
+    <div className="space-y-4">
+      <div className="glass-input inline-flex rounded-2xl p-1">
+        {[
+          { id: "gradient", label: "Gradient" },
+          { id: "customMedia", label: "Hosted media" },
+        ].map((option) => (
+          <button
+            key={option.id}
+            type="button"
+            onClick={() => {
+              const nextAppearance = {
+                ...appearance,
+                mode: option.id as BackgroundAppearance["mode"],
+              };
+              setAppearance(nextAppearance);
+              dispatchAppearanceChange(nextAppearance);
+              setStatusMessage("");
+            }}
+            className={`rounded-xl px-3 py-1.5 text-[12px] font-medium transition ${
+              appearance.mode === option.id
+                ? "bg-[linear-gradient(135deg,#d9f3ff,#91d7ff)] text-[#08111f]"
+                : "text-slate-300 hover:text-white"
+            }`}
+          >
+            {option.label}
+          </button>
+        ))}
+      </div>
 
-      {isOpen ? (
-        <div className="glass-popover absolute right-0 top-full z-30 mt-3 w-[20rem] rounded-2xl p-3">
-          <div className="glass-input mb-3 inline-flex rounded-2xl p-1">
-            {[
-              { id: "gradient", label: "Gradient" },
-              { id: "customMedia", label: "Hosted media" },
-            ].map((option) => (
-              <button
-                key={option.id}
-                type="button"
-                onClick={() => {
-                  const nextAppearance = {
-                    ...appearance,
-                    mode: option.id as BackgroundAppearance["mode"],
-                  };
-                  setAppearance(nextAppearance);
-                  dispatchAppearanceChange(nextAppearance);
-                  setStatusMessage("");
-                }}
-                className={`rounded-xl px-3 py-1.5 text-[12px] font-medium transition ${
-                  appearance.mode === option.id
-                    ? "bg-[linear-gradient(135deg,#d9f3ff,#91d7ff)] text-[#08111f]"
-                    : "text-slate-300 hover:text-white"
-                }`}
+      {appearance.mode === "gradient" ? (
+        <>
+          <div
+            className="h-16 rounded-2xl border border-white/10"
+            style={previewStyle}
+          />
+          <p className="text-xs uppercase tracking-[0.18em] text-slate-400">
+            Background glow
+          </p>
+          <div className="space-y-3">
+            {colorFields.map((field) => (
+              <label
+                key={field.key}
+                className="flex items-center justify-between gap-3 text-sm text-slate-200"
               >
-                {option.label}
-              </button>
+                <span>{field.label}</span>
+                <input
+                  type="color"
+                  value={appearance.gradientColors[field.key]}
+                  onChange={(event) =>
+                    updateGradientColor(field.key, event.target.value)
+                  }
+                  className="h-9 w-12 cursor-pointer rounded-lg border border-white/10 bg-transparent p-0"
+                />
+              </label>
             ))}
           </div>
-
-          {appearance.mode === "gradient" ? (
-            <>
-              <div
-                className="mb-3 h-16 rounded-2xl border border-white/10"
-                style={previewStyle}
-              />
-              <p className="mb-3 text-xs uppercase tracking-[0.18em] text-slate-400">
-                Background glow
-              </p>
-              <div className="space-y-3">
-                {colorFields.map((field) => (
-                  <label
-                    key={field.key}
-                    className="flex items-center justify-between gap-3 text-sm text-slate-200"
-                  >
-                    <span>{field.label}</span>
-                    <input
-                      type="color"
-                      value={appearance.gradientColors[field.key]}
-                      onChange={(event) =>
-                        updateGradientColor(field.key, event.target.value)
-                      }
-                      className="h-9 w-12 cursor-pointer rounded-lg border border-white/10 bg-transparent p-0"
-                    />
-                  </label>
-                ))}
-              </div>
-              <div
-                className="mb-3 mt-5 h-16 rounded-2xl border border-white/10"
-                style={widgetPreviewStyle}
-              />
-              <p className="mb-3 text-xs uppercase tracking-[0.18em] text-slate-400">
-                Widget tint
-              </p>
-              <div className="space-y-3">
-                <label className="flex items-center justify-between gap-3 text-sm text-slate-200">
-                  <span>Widget base</span>
-                  <input
-                    type="color"
-                    value={appearance.widgetBaseColor}
-                    onChange={(event) => updateWidgetBaseColor(event.target.value)}
-                    className="h-9 w-12 cursor-pointer rounded-lg border border-white/10 bg-transparent p-0"
-                  />
-                </label>
-                {colorFields.map((field) => (
-                  <label
-                    key={`widget-${field.key}`}
-                    className="flex items-center justify-between gap-3 text-sm text-slate-200"
-                  >
-                    <span>{field.label}</span>
-                    <input
-                      type="color"
-                      value={appearance.widgetGradientColors[field.key]}
-                      onChange={(event) =>
-                        updateWidgetGradientColor(field.key, event.target.value)
-                      }
-                      className="h-9 w-12 cursor-pointer rounded-lg border border-white/10 bg-transparent p-0"
-                    />
-                  </label>
-                ))}
-              </div>
-            </>
-          ) : (
-            <div className="space-y-3">
-              <div className="space-y-2 text-xs leading-5 text-slate-300">
-                <p>
-                  Use a direct file link, not a gallery or page link.
-                  Supported: `.webp`, `.png`, `.gif`, `.mp4`, `.webm`.
-                </p>
-                <p>
-                  Good hosts: Imgur direct image links, Cloudinary, GitHub raw,
-                  or any CDN/static file host with CORS enabled.
-                </p>
-                <p>
-                  Link format:
-                  ` https://i.imgur.com/abc123.png`
-                  or `https://cdn.example.com/bg.webm`
-                </p>
-              </div>
+          <div
+            className="h-16 rounded-2xl border border-white/10"
+            style={widgetPreviewStyle}
+          />
+          <p className="text-xs uppercase tracking-[0.18em] text-slate-400">
+            Widget tint
+          </p>
+          <div className="space-y-3">
+            <label className="flex items-center justify-between gap-3 text-sm text-slate-200">
+              <span>Widget base</span>
               <input
-                type="url"
-                value={draftUrl}
-                onChange={(event) => {
-                  setDraftUrl(event.target.value);
-                  setStatusMessage("");
-                }}
-                placeholder="https://i.imgur.com/abc123.png"
-                className="glass-input w-full rounded-2xl px-3 py-2 text-sm text-white outline-none transition placeholder:text-slate-400 focus:border-[#9bdcff]/50"
+                type="color"
+                value={appearance.widgetBaseColor}
+                onChange={(event) => updateWidgetBaseColor(event.target.value)}
+                className="h-9 w-12 cursor-pointer rounded-lg border border-white/10 bg-transparent p-0"
               />
-              <div className="flex items-center justify-between gap-3 text-xs text-slate-400">
-                <span>
-                  Detected:{" "}
-                  {detectedMediaType === "image"
-                    ? "Image background"
-                    : detectedMediaType === "video"
-                      ? "Animated video"
-                      : "Unsupported"}
-                </span>
-                <span className="text-right">
-                  Widgets auto-shift to higher transparency
-                </span>
-              </div>
-              <div className="space-y-2">
-                <div className="flex items-center justify-between gap-3 text-xs text-slate-300">
-                  <span>Widget transparency</span>
-                  <span>{appearance.widgetTransparency}%</span>
-                </div>
+            </label>
+            {colorFields.map((field) => (
+              <label
+                key={`widget-${field.key}`}
+                className="flex items-center justify-between gap-3 text-sm text-slate-200"
+              >
+                <span>{field.label}</span>
                 <input
-                  type="range"
-                  min="0"
-                  max="100"
-                  step="1"
-                  value={appearance.widgetTransparency}
+                  type="color"
+                  value={appearance.widgetGradientColors[field.key]}
                   onChange={(event) =>
-                    updateWidgetTransparency(Number(event.target.value))
+                    updateWidgetGradientColor(field.key, event.target.value)
                   }
-                  className="w-full accent-[#9bdcff]"
+                  className="h-9 w-12 cursor-pointer rounded-lg border border-white/10 bg-transparent p-0"
                 />
-              </div>
-              <div
-                className="h-14 rounded-2xl border border-white/10"
-                style={widgetPreviewStyle}
-              />
-              <p className="text-xs uppercase tracking-[0.18em] text-slate-400">
-                Widget tint
-              </p>
-              <div className="space-y-3">
-                <label className="flex items-center justify-between gap-3 text-sm text-slate-200">
-                  <span>Widget base</span>
-                  <input
-                    type="color"
-                    value={appearance.widgetBaseColor}
-                    onChange={(event) => updateWidgetBaseColor(event.target.value)}
-                    className="h-9 w-12 cursor-pointer rounded-lg border border-white/10 bg-transparent p-0"
-                  />
-                </label>
-                {colorFields.map((field) => (
-                  <label
-                    key={`media-widget-${field.key}`}
-                    className="flex items-center justify-between gap-3 text-sm text-slate-200"
-                  >
-                    <span>{field.label}</span>
-                    <input
-                      type="color"
-                      value={appearance.widgetGradientColors[field.key]}
-                      onChange={(event) =>
-                        updateWidgetGradientColor(field.key, event.target.value)
-                      }
-                      className="h-9 w-12 cursor-pointer rounded-lg border border-white/10 bg-transparent p-0"
-                    />
-                  </label>
-                ))}
-              </div>
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => void handleApplyCustomBackground()}
-                  disabled={isApplying}
-                  className="rounded-xl bg-[linear-gradient(135deg,#d9f3ff,#91d7ff)] px-3 py-2 text-xs font-semibold text-[#08111f] transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-60"
-                >
-                  {isApplying ? "Applying..." : "Apply"}
-                </button>
-                <button
-                  type="button"
-                  onClick={handleResetToGradient}
-                  className="glass-input rounded-xl px-3 py-2 text-xs font-semibold text-slate-200 transition hover:border-white/18 hover:text-white"
-                >
-                  Reset
-                </button>
-              </div>
-              {statusMessage ? (
-                <p className="text-xs leading-5 text-slate-300">
-                  {statusMessage}
-                </p>
-              ) : null}
+              </label>
+            ))}
+          </div>
+        </>
+      ) : (
+        <div className="space-y-3">
+          <div className="space-y-2 text-xs leading-5 text-slate-300">
+            <p>
+              Use a direct file link, not a gallery or page link.
+              Supported: `.webp`, `.png`, `.gif`, `.mp4`, `.webm`.
+            </p>
+            <p>
+              Good hosts: Imgur direct image links, Cloudinary, GitHub raw,
+              or any CDN/static file host with CORS enabled.
+            </p>
+            <p>
+              Link format:
+              ` https://i.imgur.com/abc123.png`
+              or `https://cdn.example.com/bg.webm`
+            </p>
+          </div>
+          <input
+            type="url"
+            value={draftUrl}
+            onChange={(event) => {
+              setDraftUrl(event.target.value);
+              setStatusMessage("");
+            }}
+            placeholder="https://i.imgur.com/abc123.png"
+            className="glass-input w-full rounded-2xl px-3 py-2 text-sm text-white outline-none transition placeholder:text-slate-400 focus:border-[#9bdcff]/50"
+          />
+          <div className="flex items-center justify-between gap-3 text-xs text-slate-400">
+            <span>
+              Detected:{" "}
+              {detectedMediaType === "image"
+                ? "Image background"
+                : detectedMediaType === "video"
+                  ? "Animated video"
+                  : "Unsupported"}
+            </span>
+            <span className="text-right">
+              Widgets auto-shift to higher transparency
+            </span>
+          </div>
+          <div className="space-y-2">
+            <div className="flex items-center justify-between gap-3 text-xs text-slate-300">
+              <span>Widget transparency</span>
+              <span>{appearance.widgetTransparency}%</span>
             </div>
-          )}
+            <input
+              type="range"
+              min="0"
+              max="100"
+              step="1"
+              value={appearance.widgetTransparency}
+              onChange={(event) =>
+                updateWidgetTransparency(Number(event.target.value))
+              }
+              className="w-full accent-[#9bdcff]"
+            />
+          </div>
+          <div
+            className="h-14 rounded-2xl border border-white/10"
+            style={widgetPreviewStyle}
+          />
+          <p className="text-xs uppercase tracking-[0.18em] text-slate-400">
+            Widget tint
+          </p>
+          <div className="space-y-3">
+            <label className="flex items-center justify-between gap-3 text-sm text-slate-200">
+              <span>Widget base</span>
+              <input
+                type="color"
+                value={appearance.widgetBaseColor}
+                onChange={(event) => updateWidgetBaseColor(event.target.value)}
+                className="h-9 w-12 cursor-pointer rounded-lg border border-white/10 bg-transparent p-0"
+              />
+            </label>
+            {colorFields.map((field) => (
+              <label
+                key={`media-widget-${field.key}`}
+                className="flex items-center justify-between gap-3 text-sm text-slate-200"
+              >
+                <span>{field.label}</span>
+                <input
+                  type="color"
+                  value={appearance.widgetGradientColors[field.key]}
+                  onChange={(event) =>
+                    updateWidgetGradientColor(field.key, event.target.value)
+                  }
+                  className="h-9 w-12 cursor-pointer rounded-lg border border-white/10 bg-transparent p-0"
+                />
+              </label>
+            ))}
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => void handleApplyCustomBackground()}
+              disabled={isApplying}
+              className="rounded-xl bg-[linear-gradient(135deg,#d9f3ff,#91d7ff)] px-3 py-2 text-xs font-semibold text-[#08111f] transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {isApplying ? "Applying..." : "Apply"}
+            </button>
+            <button
+              type="button"
+              onClick={handleResetToGradient}
+              className="glass-input rounded-xl px-3 py-2 text-xs font-semibold text-slate-200 transition hover:border-white/18 hover:text-white"
+            >
+              Reset
+            </button>
+          </div>
+          {statusMessage ? (
+            <p className="text-xs leading-5 text-slate-300">{statusMessage}</p>
+          ) : null}
         </div>
-      ) : null}
+      )}
     </div>
   );
 }
