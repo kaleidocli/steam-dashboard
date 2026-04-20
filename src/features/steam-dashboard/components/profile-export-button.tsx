@@ -312,7 +312,7 @@ function strokeRoundedRect(
   width: number,
   height: number,
   radius: number,
-  strokeStyle: string,
+  strokeStyle: string | CanvasGradient,
   lineWidth = 1,
 ) {
   context.save();
@@ -371,6 +371,47 @@ function drawGlassCard(
   strokeRoundedRect(context, x, y, width, height, radius, "rgba(255,255,255,0.12)");
 }
 
+function drawExportFrame(
+  context: CanvasRenderingContext2D,
+  appearance: BackgroundAppearance,
+) {
+  const frameX = 20;
+  const frameY = 20;
+  const frameWidth = EXPORT_WIDTH - 40;
+  const frameHeight = EXPORT_HEIGHT - 40;
+  const outerGradient = context.createLinearGradient(
+    frameX,
+    frameY,
+    frameX + frameWidth,
+    frameY + frameHeight,
+  );
+  outerGradient.addColorStop(0, toRgba(appearance.widgetGradientColors.color1, 0.5));
+  outerGradient.addColorStop(0.34, toRgba(appearance.widgetGradientColors.color2, 0.5));
+  outerGradient.addColorStop(0.68, toRgba(appearance.widgetGradientColors.color3, 0.5));
+  outerGradient.addColorStop(1, toRgba(appearance.widgetBaseColor, 0.5));
+
+  strokeRoundedRect(
+    context,
+    frameX,
+    frameY,
+    frameWidth,
+    frameHeight,
+    38,
+    "rgba(255,255,255,0.18)",
+    1.5,
+  );
+  strokeRoundedRect(
+    context,
+    frameX + 8,
+    frameY + 8,
+    frameWidth - 16,
+    frameHeight - 16,
+    32,
+    outerGradient,
+    5,
+  );
+}
+
 function drawBackground(
   context: CanvasRenderingContext2D,
   appearance: BackgroundAppearance,
@@ -412,6 +453,7 @@ function drawBackground(
 
   context.fillStyle = "rgba(255,255,255,0.05)";
   context.fillRect(0, 0, EXPORT_WIDTH, 120);
+  drawExportFrame(context, appearance);
 }
 
 function drawGifBackgroundFrame(
@@ -451,6 +493,7 @@ function drawGifBackgroundFrame(
 
   context.fillStyle = "rgba(255,255,255,0.05)";
   context.fillRect(0, 0, EXPORT_WIDTH, 120);
+  drawExportFrame(context, appearance);
 }
 
 function drawText(
@@ -667,18 +710,14 @@ function drawPortraitRowSection(
     font: "700 27px 'Segoe UI'",
     color: "#ffffff",
   });
-  drawText(context, subtitle, x + 24, y + 66, {
-    font: "400 16px 'Segoe UI'",
-    color: "rgba(226,237,251,0.72)",
-  });
 
   const gap = 14;
   const cardWidth = (width - 48 - gap * 4) / 5;
-  const cardHeight = height - 90;
+  const cardHeight = height - 64;
 
   games.forEach((game, index) => {
     const cardX = x + 24 + index * (cardWidth + gap);
-    const cardY = y + 84;
+    const cardY = y + 58;
     const isTopPick = showRanks && index === 0 && game;
     drawGlassCard(context, appearance, cardX, cardY, cardWidth, cardHeight, 24);
 
@@ -1064,7 +1103,7 @@ function drawExportContent(
   const rightX = leftX + leftWidth + 24;
   const rightWidth = EXPORT_WIDTH - rightX - 48;
 
-  const topHoursHeight = 236;
+  const topHoursHeight = 308;
   const playtimeHeight = 308;
   drawPortraitRowSection(
     context,
@@ -1091,6 +1130,7 @@ function drawExportContent(
 
   currentY += Math.max(topHoursHeight, playtimeHeight) + 20;
   drawTagsSection(context, tagBreakdown, appearance, leftX, currentY, leftWidth, 320);
+  const recentHeight = 320;
   drawListSection(
     context,
     appearance,
@@ -1099,7 +1139,7 @@ function drawExportContent(
     rightX,
     currentY,
     rightWidth,
-    188,
+    recentHeight,
     summary.recentGames.slice(0, 4),
     exportImages.capsulesByAppId,
     (game) => formatPlaytime(game.playtime_forever),
