@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { decompressFrames, parseGIF, type ParsedFrame } from "gifuct-js";
+import { GIFEncoder, applyPalette, quantize } from "gifenc";
 import {
   formatPlaytime,
   formatUnixDate,
@@ -42,7 +44,16 @@ type ExportStatus =
 
 type ResolvedExportBackground =
   | { mode: "gradient"; warning: string | null; imageUrl: null }
-  | { mode: "image"; warning: string | null; imageUrl: string };
+  | { mode: "image"; warning: string | null; imageUrl: string }
+  | {
+      mode: "gif";
+      warning: string | null;
+      imageUrl: null;
+      frames: ParsedFrame[];
+      width: number;
+      height: number;
+      totalDuration: number;
+    };
 
 type ExportImageAssets = {
   avatar: HTMLImageElement | null;
@@ -51,10 +62,17 @@ type ExportImageAssets = {
   backgroundImage: HTMLImageElement | null;
 };
 
+type RenderedExportFrame = {
+  pixels: Uint8ClampedArray;
+  delay: number;
+};
+
 const EXPORT_WIDTH = 1920;
 const EXPORT_HEIGHT = 1280;
 const EXPORT_FILE_BASENAME = "steam-dashboard-profile";
 const MAX_FAVORITES = 5;
+const MIN_ANIMATED_EXPORT_DURATION = 1600;
+const MAX_ANIMATED_EXPORT_DURATION = 8000;
 
 function getPortraitImageUrl(appid: number) {
   return `https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/${appid}/library_600x900_2x.jpg`;
@@ -132,6 +150,25 @@ function downloadDataUrl(dataUrl: string, filename: string) {
   link.click();
 }
 
+function downloadBlob(blob: Blob, filename: string) {
+  const objectUrl = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = objectUrl;
+  link.download = filename;
+  link.click();
+  window.setTimeout(() => {
+    URL.revokeObjectURL(objectUrl);
+  }, 1000);
+}
+
+function isGifUrl(url: string) {
+  try {
+    return new URL(url).pathname.toLocaleLowerCase().endsWith(".gif");
+  } catch {
+    return false;
+  }
+}
+
 async function fetchImageAsDataUrl(url: string) {
   try {
     const response = await fetch(url, { cache: "force-cache" });
@@ -178,6 +215,47 @@ async function resolveExportBackground(
       warning:
         "Hosted video backgrounds cannot be embedded in the export yet, so a matching gradient was used instead.",
     };
+  }
+
+  if (isGifUrl(appearance.customMediaUrl)) {
+    try {
+      const response = await fetch(appearance.customMediaUrl, { cache: "force-cache" });
+      if (!response.ok) {
+        throw new Error("Unable to download the hosted GIF background.");
+      }
+
+      const arrayBuffer = await response.arrayBuffer();
+      const parsedGif = parseGIF(arrayBuffer);
+      const frames = decompressFrames(parsedGif, false);
+      const totalDuration = frames.reduce(
+        (sum, frame) => sum + Math.max(20, frame.delay || 100),
+        0,
+      );
+
+      if (frames.length === 0) {
+        throw new Error("No GIF frames were found in the hosted background.");
+      }
+
+      return {
+        mode: "gif",
+        imageUrl: null,
+        warning: null,
+        frames: decompressFrames(parsedGif, true),
+        width: parsedGif.lsd.width,
+        height: parsedGif.lsd.height,
+        totalDuration: Math.max(
+          MIN_ANIMATED_EXPORT_DURATION,
+          Math.min(MAX_ANIMATED_EXPORT_DURATION, totalDuration),
+        ),
+      };
+    } catch {
+      return {
+        mode: "gradient",
+        imageUrl: null,
+        warning:
+          "Your hosted GIF background could not be embedded safely in the export, so a matching gradient was used instead.",
+      };
+    }
   }
 
   const imageUrl = await fetchImageAsDataUrl(appearance.customMediaUrl);
@@ -310,6 +388,45 @@ function drawBackground(
     context.fillStyle = "rgba(8,12,20,0.34)";
     context.fillRect(0, 0, EXPORT_WIDTH, EXPORT_HEIGHT);
   }
+
+  const layers = [
+    { color: appearance.gradientColors.color1, x: 0.18, y: 0.18, radius: 0.24, alpha: 0.34 },
+    { color: appearance.gradientColors.color2, x: 0.82, y: 0.16, radius: 0.21, alpha: 0.26 },
+    { color: appearance.gradientColors.color3, x: 0.55, y: 0.82, radius: 0.28, alpha: 0.2 },
+  ];
+
+  for (const layer of layers) {
+    const radial = context.createRadialGradient(
+      EXPORT_WIDTH * layer.x,
+      EXPORT_HEIGHT * layer.y,
+      0,
+      EXPORT_WIDTH * layer.x,
+      EXPORT_HEIGHT * layer.y,
+      EXPORT_WIDTH * layer.radius,
+    );
+    radial.addColorStop(0, toRgba(layer.color, layer.alpha));
+    radial.addColorStop(1, "rgba(255,255,255,0)");
+    context.fillStyle = radial;
+    context.fillRect(0, 0, EXPORT_WIDTH, EXPORT_HEIGHT);
+  }
+
+  context.fillStyle = "rgba(255,255,255,0.05)";
+  context.fillRect(0, 0, EXPORT_WIDTH, 120);
+}
+
+function drawGifBackgroundFrame(
+  context: CanvasRenderingContext2D,
+  appearance: BackgroundAppearance,
+  animatedImage: CanvasImageSource,
+) {
+  context.fillStyle = "#09111d";
+  context.fillRect(0, 0, EXPORT_WIDTH, EXPORT_HEIGHT);
+  context.save();
+  context.globalAlpha = 0.88;
+  context.drawImage(animatedImage, 0, 0, EXPORT_WIDTH, EXPORT_HEIGHT);
+  context.restore();
+  context.fillStyle = "rgba(8,12,20,0.34)";
+  context.fillRect(0, 0, EXPORT_WIDTH, EXPORT_HEIGHT);
 
   const layers = [
     { color: appearance.gradientColors.color1, x: 0.18, y: 0.18, radius: 0.24, alpha: 0.34 },
@@ -884,7 +1001,7 @@ async function resolveExportImages(
           ]),
         ] as const),
       ),
-      loadImage(background.imageUrl),
+      loadImage(background.mode === "image" ? background.imageUrl : null),
     ]);
 
   return {
@@ -913,27 +1030,15 @@ async function resolveExportImages(
   } satisfies ExportImageAssets;
 }
 
-async function renderProfileExportImage(
+function drawExportContent(
+  context: CanvasRenderingContext2D,
   summary: SteamUserSummary,
   tagBreakdown: SteamTagBreakdown | null,
   appearance: BackgroundAppearance,
   favoriteGames: SteamOwnedGame[],
   isOwnProfile: boolean,
+  exportImages: ExportImageAssets,
 ) {
-  const resolvedBackground = await resolveExportBackground(appearance);
-  const exportImages = await resolveExportImages(summary, favoriteGames, resolvedBackground);
-
-  const canvas = document.createElement("canvas");
-  canvas.width = EXPORT_WIDTH;
-  canvas.height = EXPORT_HEIGHT;
-  const context = canvas.getContext("2d");
-
-  if (!context) {
-    throw new Error("Canvas export is not available in this browser.");
-  }
-
-  await document.fonts.ready;
-  drawBackground(context, appearance, resolvedBackground, exportImages.backgroundImage);
   drawHeaderSection(context, summary, appearance, exportImages.avatar);
 
   let currentY = 272;
@@ -1003,8 +1108,141 @@ async function renderProfileExportImage(
         ? `${formatPlaytime((game as SteamRecentGame).playtime_2weeks)} in the last 2 weeks`
         : formatPlaytime(game.playtime_forever),
   );
+}
+
+async function renderProfileExportImage(
+  summary: SteamUserSummary,
+  tagBreakdown: SteamTagBreakdown | null,
+  appearance: BackgroundAppearance,
+  favoriteGames: SteamOwnedGame[],
+  isOwnProfile: boolean,
+) {
+  const resolvedBackground = await resolveExportBackground(appearance);
+  const exportImages = await resolveExportImages(summary, favoriteGames, resolvedBackground);
+
+  const canvas = document.createElement("canvas");
+  canvas.width = EXPORT_WIDTH;
+  canvas.height = EXPORT_HEIGHT;
+  const context = canvas.getContext("2d");
+
+  if (!context) {
+    throw new Error("Canvas export is not available in this browser.");
+  }
+
+  await document.fonts.ready;
+  drawBackground(context, appearance, resolvedBackground, exportImages.backgroundImage);
+  drawExportContent(
+    context,
+    summary,
+    tagBreakdown,
+    appearance,
+    favoriteGames,
+    isOwnProfile,
+    exportImages,
+  );
+
+  if (resolvedBackground.mode === "gif") {
+    const gifCanvas = document.createElement("canvas");
+    gifCanvas.width = resolvedBackground.width;
+    gifCanvas.height = resolvedBackground.height;
+    const gifContext = gifCanvas.getContext("2d", { willReadFrequently: true });
+
+    if (!gifContext) {
+      throw new Error("Animated background could not be rendered for export.");
+    }
+
+    let elapsed = 0;
+    let previousSnapshot: ImageData | null = null;
+    let previousDisposalType = 0;
+    let previousDims: ParsedFrame["dims"] | null = null;
+    const renderedFrames: RenderedExportFrame[] = [];
+
+    const drawGifFrame = (frame: ParsedFrame) => {
+      if (previousDisposalType === 2 && previousDims) {
+        gifContext.clearRect(
+          previousDims.left,
+          previousDims.top,
+          previousDims.width,
+          previousDims.height,
+        );
+      } else if (previousDisposalType === 3 && previousSnapshot) {
+        gifContext.putImageData(previousSnapshot, 0, 0);
+      }
+
+      previousSnapshot =
+        frame.disposalType === 3
+          ? gifContext.getImageData(0, 0, gifCanvas.width, gifCanvas.height)
+          : null;
+
+      const patchImage = new ImageData(
+        new Uint8ClampedArray(frame.patch),
+        frame.dims.width,
+        frame.dims.height,
+      );
+      gifContext.putImageData(patchImage, frame.dims.left, frame.dims.top);
+      previousDisposalType = frame.disposalType;
+      previousDims = frame.dims;
+    };
+
+    while (elapsed < resolvedBackground.totalDuration) {
+      for (const frame of resolvedBackground.frames) {
+        drawGifFrame(frame);
+        drawGifBackgroundFrame(context, appearance, gifCanvas);
+        drawExportContent(
+          context,
+          summary,
+          tagBreakdown,
+          appearance,
+          favoriteGames,
+          isOwnProfile,
+          exportImages,
+        );
+
+        const delay = Math.max(20, frame.delay || 100);
+        renderedFrames.push({
+          pixels: new Uint8ClampedArray(
+            context.getImageData(0, 0, EXPORT_WIDTH, EXPORT_HEIGHT).data,
+          ),
+          delay,
+        });
+        elapsed += delay;
+
+        if (elapsed >= resolvedBackground.totalDuration) {
+          break;
+        }
+      }
+    }
+
+    if (renderedFrames.length === 0) {
+      throw new Error("Animated GIF export could not render any frames.");
+    }
+
+    const encoder = GIFEncoder();
+    renderedFrames.forEach((frame, index) => {
+      const palette = quantize(frame.pixels, 256, {
+        format: "rgb565",
+      });
+      const indexedFrame = applyPalette(frame.pixels, palette, "rgb565");
+      encoder.writeFrame(indexedFrame, EXPORT_WIDTH, EXPORT_HEIGHT, {
+        palette,
+        delay: frame.delay,
+        repeat: index === 0 ? 0 : undefined,
+        dispose: 1,
+      });
+    });
+    encoder.finish();
+
+    return {
+      type: "gif" as const,
+      blob: new Blob([new Uint8Array(encoder.bytesView())], {
+        type: "image/gif",
+      }),
+      warning: resolvedBackground.warning,
+    };
+  }
 
   return {
+    type: "png" as const,
     dataUrl: canvas.toDataURL("image/png"),
     warning: resolvedBackground.warning,
   };
@@ -1108,7 +1346,7 @@ export function ProfileExportButton({
     });
 
     try {
-      const { dataUrl, warning } = await renderProfileExportImage(
+      const result = await renderProfileExportImage(
         summary,
         tagBreakdown,
         appearance,
@@ -1117,10 +1355,18 @@ export function ProfileExportButton({
       );
       const safeName =
         sanitizeFileName(summary.player.personaname) || EXPORT_FILE_BASENAME;
-      downloadDataUrl(dataUrl, `${safeName}-steam-dashboard.png`);
+      if (result.type === "gif") {
+        downloadBlob(result.blob, `${safeName}-steam-dashboard.gif`);
+      } else {
+        downloadDataUrl(result.dataUrl, `${safeName}-steam-dashboard.png`);
+      }
       setStatus({
-        tone: warning ? "warning" : "success",
-        message: warning ?? "Your profile image is ready and has been downloaded.",
+        tone: result.warning ? "warning" : "success",
+        message:
+          result.warning ??
+          (result.type === "gif"
+            ? "Your animated profile GIF is ready and loops continuously."
+            : "Your profile image is ready and has been downloaded."),
       });
     } catch (error) {
       console.error("Profile export failed", error);
@@ -1144,7 +1390,7 @@ export function ProfileExportButton({
         disabled={isExporting}
         className="glass-input inline-flex h-10 items-center justify-center rounded-full px-4 text-sm font-medium text-[#9bdcff] transition hover:border-white/18 hover:text-white disabled:cursor-wait disabled:opacity-70"
       >
-        {isExporting ? "Exporting..." : "Export Image"}
+        {isExporting ? "Exporting..." : "Export Profile as Image"}
       </button>
       <p
         className={`rounded-2xl border px-3 py-2 text-xs leading-5 ${getStatusClasses(status.tone)}`}
